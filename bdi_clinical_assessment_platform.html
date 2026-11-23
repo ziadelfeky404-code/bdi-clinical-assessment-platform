@@ -482,8 +482,8 @@
         <div id="question-card" class="bg-white rounded-3xl p-6 sm:p-8 shadow-lg border border-slate-200 transition-all">
           <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b border-slate-100">
             <div>
-              <span class="text-xs font-bold text-emerald-700 uppercase tracking-wide block mb-1">البند رقم (<span id="q-number">1</span>)</span>
-              <h2 id="q-title" class="text-xl sm:text-2xl font-extrabold text-slate-900">الحزن والكآبة (Sadness)</h2>
+              <span class="text-lg sm:text-xl font-extrabold text-emerald-800 block">البند رقم (<span id="q-number">1</span>)</span>
+              <h2 id="q-title" class="hidden text-xl sm:text-2xl font-extrabold text-slate-900"></h2>
             </div>
 
             <!-- Multi-select Clinical Rule Indicator -->
@@ -1464,9 +1464,9 @@
       document.getElementById('answered-count').textContent = answeredCount;
       document.getElementById('progress-bar-fill').style.width = `${Math.max(4.76, percent)}%`;
 
-      // Update Question Header
+      // Update Question Header (title intentionally hidden from the respondent)
       document.getElementById('q-number').textContent = item.id;
-      document.getElementById('q-title').innerHTML = `${item.titleAr} <span class="font-en text-sm sm:text-base font-semibold text-slate-400 mr-1">(${item.titleEn})</span>`;
+      document.getElementById('q-title').textContent = '';
 
       // Show or hide Multi-Select Highest-Score Badge
       const multiBadge = document.getElementById('multi-select-badge');
