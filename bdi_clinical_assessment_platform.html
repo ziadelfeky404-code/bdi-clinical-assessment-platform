@@ -498,6 +498,12 @@
             <!-- Options injected dynamically -->
           </div>
 
+          <!-- Auto-advance hint -->
+          <div class="mt-4 flex items-start gap-2 text-[11px] sm:text-xs font-semibold text-emerald-700">
+            <i class="fa-solid fa-forward-step mt-0.5 text-emerald-600"></i>
+            <span>عند اختيار إجابة سيتم الانتقال تلقائياً للبند التالي، ويمكنك الرجوع في أي وقت لتعديل إجابتك.</span>
+          </div>
+
           <!-- Validation Hint -->
           <div id="selection-warning" class="hidden mt-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm font-bold flex items-center gap-2">
             <i class="fa-solid fa-circle-exclamation"></i>
@@ -1321,6 +1327,7 @@
     // 3. NAVIGATION & STAGE MANAGEMENT
     // =========================================================================
     function goToStage(stageNum) {
+      cancelAutoAdvance();
       appState.currentStage = stageNum;
 
       // Hide all stages
@@ -1423,6 +1430,7 @@
         btn.textContent = item.id;
         btn.title = `البند ${item.id}: ${item.titleAr}`;
         btn.onclick = () => {
+          cancelAutoAdvance();
           appState.currentItemIndex = idx;
           renderCurrentItem();
         };
@@ -1535,12 +1543,35 @@
       renderItemDots();
     }
 
+    // Auto-advance: after giving a brand-new answer, move straight to the next item.
+    // When reviewing an already-answered item, stay put so the answer can be edited.
+    let autoAdvanceTimer = null;
+
+    function cancelAutoAdvance() {
+      if (autoAdvanceTimer) {
+        clearTimeout(autoAdvanceTimer);
+        autoAdvanceTimer = null;
+      }
+    }
+
+    function scheduleAutoAdvance(itemIndex) {
+      cancelAutoAdvance();
+      autoAdvanceTimer = setTimeout(() => {
+        autoAdvanceTimer = null;
+        // Guard: only advance if we are still on the same item and it still has an answer
+        if (appState.currentItemIndex === itemIndex && appState.responses[itemIndex]?.length > 0) {
+          nextItem();
+        }
+      }, 200);
+    }
+
     function toggleOptionSelection(itemIndex, score) {
       if (!appState.responses[itemIndex]) {
         appState.responses[itemIndex] = [];
       }
 
       const arr = appState.responses[itemIndex];
+      const wasAnswered = arr.length > 0;
       const existingPos = arr.indexOf(score);
 
       if (existingPos > -1) {
@@ -1552,9 +1583,17 @@
       }
 
       renderCurrentItem();
+
+      // First-time answer -> auto-advance. Editing an existing answer -> remain on this item.
+      if (!wasAnswered && arr.length > 0) {
+        scheduleAutoAdvance(itemIndex);
+      } else {
+        cancelAutoAdvance();
+      }
     }
 
     function prevItem() {
+      cancelAutoAdvance();
       if (appState.currentItemIndex > 0) {
         appState.currentItemIndex--;
         renderCurrentItem();
@@ -1562,6 +1601,7 @@
     }
 
     function nextItem() {
+      cancelAutoAdvance();
       const idx = appState.currentItemIndex;
       const selected = appState.responses[idx];
 
