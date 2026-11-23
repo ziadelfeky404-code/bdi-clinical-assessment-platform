@@ -3,6 +3,7 @@ import { sb, escapeHtml, getSettings, setText, toast, errorMessage, formatDate }
 const state = {
   profile: null,
   isAdmin: false,
+  isDemo: false,
   assessments: [],
   reports: [],
   settings: {},
@@ -31,6 +32,7 @@ function showLogin() {
   document.getElementById('login-view').classList.remove('hidden');
   document.getElementById('app-view').classList.add('hidden');
   document.getElementById('header-actions').classList.add('hidden');
+  document.getElementById('demo-banner').classList.add('hidden');
 }
 
 function showApp() {
@@ -501,8 +503,10 @@ async function authorize() {
 
   state.profile = data;
   state.isAdmin = data.role === 'admin';
-  setText('user-label', `${data.full_name || user.email} ${state.isAdmin ? '• مدير' : ''}`);
+  state.isDemo = (data.email || user.email) === 'demo@menoufia.edu.eg';
+  setText('user-label', `${data.full_name || user.email} ${state.isDemo ? '• عرض تجريبي' : state.isAdmin ? '• مدير' : ''}`);
   document.getElementById('add-team-card').classList.toggle('hidden', !state.isAdmin);
+  document.getElementById('demo-banner').classList.toggle('hidden', !state.isDemo);
   showApp();
 
   try {
@@ -512,25 +516,59 @@ async function authorize() {
   }
 }
 
+function friendlyAuthError(error) {
+  const message = errorMessage(error).toLowerCase();
+  if (message.includes('invalid login credentials')) return 'البريد الإلكتروني أو كلمة المرور غير صحيحة. جرّب زر «دخول تجريبي» أعلاه.';
+  if (message.includes('email not confirmed')) return 'لم يتم تأكيد البريد الإلكتروني بعد.';
+  if (message.includes('too many requests')) return 'محاولات كثيرة؛ انتظر قليلاً ثم حاول مجدداً.';
+  return errorMessage(error);
+}
+
+async function signIn(email, password, err) {
+  err.classList.add('hidden');
+  try {
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    await authorize();
+  } catch (e) {
+    err.textContent = friendlyAuthError(e);
+    err.classList.remove('hidden');
+  }
+}
+
 function bindEvents() {
   document.getElementById('login-form').addEventListener('submit', async e => {
     e.preventDefault();
     const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
-    const err = document.getElementById('login-error');
-    err.classList.add('hidden');
+    await signIn(email, password, document.getElementById('login-error'));
+  });
+
+  document.getElementById('demo-login-btn').addEventListener('click', async () => {
+    document.getElementById('login-email').value = 'demo@menoufia.edu.eg';
+    document.getElementById('login-password').value = 'Demo@2026';
+    await signIn('demo@menoufia.edu.eg', 'Demo@2026', document.getElementById('login-error'));
+  });
+
+  document.getElementById('reset-demo-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('reset-demo-btn');
+    btn.disabled = true;
     try {
-      const { error } = await sb.auth.signInWithPassword({ email, password });
+      const { data, error } = await sb.rpc('seed_demo_data');
       if (error) throw error;
-      await authorize();
+      await Promise.all([loadAssessments(), loadReports(), loadSettings(), loadTeam()]);
+      toast(`تمت إعادة ضبط ${data?.demoReports ?? 0} تقريراً تجريبياً`);
     } catch (e) {
-      err.textContent = errorMessage(e);
-      err.classList.remove('hidden');
+      toast(errorMessage(e), 'error');
+    } finally {
+      btn.disabled = false;
     }
   });
 
   document.getElementById('logout-btn').addEventListener('click', async () => {
     await sb.auth.signOut();
+    state.isDemo = false;
+    document.getElementById('demo-banner').classList.add('hidden');
     showLogin();
   });
 

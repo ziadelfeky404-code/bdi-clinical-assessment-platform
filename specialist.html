@@ -50,7 +50,18 @@
         <p id="login-error" class="hidden text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2"></p>
         <button type="submit" class="btn-primary w-full">دخول</button>
       </form>
-      <p class="text-[11px] text-slate-400 text-center mt-6">
+
+      <div class="mt-5 pt-5 border-t border-slate-100">
+        <button id="demo-login-btn" type="button" class="w-full rounded-xl border-2 border-emerald-200 bg-emerald-50 text-emerald-800 px-4 py-3 text-sm font-extrabold flex items-center justify-center gap-2 hover:bg-emerald-100 transition">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> دخول تجريبي بنقرة واحدة
+        </button>
+        <p class="text-[11px] text-slate-500 text-center mt-3 leading-relaxed">
+          حساب العرض يحتوي على تقارير وبيانات جاهزة لمراجعة المنصة.<br />
+          <span class="font-en" dir="ltr">demo@menoufia.edu.eg / Demo@2026</span>
+        </p>
+      </div>
+
+      <p class="text-[11px] text-slate-400 text-center mt-5">
         <i class="fa-solid fa-lock ml-1"></i> الوصول مقيد بحساب متخصص مفعل
       </p>
     </div>
@@ -82,6 +93,19 @@
     <main>
       <!-- Dashboard -->
       <section id="tab-dashboard" class="space-y-6 fade-in">
+        <div id="demo-banner" class="hidden rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-4 flex flex-wrap items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center">
+            <i class="fa-solid fa-flask"></i>
+          </div>
+          <div class="ml-auto">
+            <p class="text-sm font-extrabold text-emerald-900">وضع العرض التجريبي</p>
+            <p class="text-[11px] text-emerald-800">التقارير والبيانات المعروضة للتوضيح فقط، وليست حالات حقيقية.</p>
+          </div>
+          <button id="reset-demo-btn" class="btn-ghost !py-1.5 !px-3 text-xs border border-emerald-300 bg-white">
+            <i class="fa-solid fa-rotate ml-1"></i> إعادة ضبط البيانات
+          </button>
+        </div>
+
         <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div class="bg-white rounded-2xl border border-slate-200 p-5">
             <p class="text-xs text-slate-500 font-bold">إجمالي الجلسات</p>
