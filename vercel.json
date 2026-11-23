@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/bdi_clinical_assessment_platform.html" }
+  ]
+}

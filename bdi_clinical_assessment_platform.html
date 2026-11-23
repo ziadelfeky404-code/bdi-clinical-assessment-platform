@@ -1,0 +1,2046 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>قائمة بيك للاكتئاب (BDI) | جامعة المنوفية</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Cairo & Tajawal for Arabic, Inter for English -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            arabic: ['Cairo', 'Tajawal', 'sans-serif'],
+            english: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            menoufia: {
+              green: '#146C43',
+              darkGreen: '#0B462B',
+              gold: '#D4AF37',
+              lightGold: '#FDF8E6',
+              slate: '#1E293B',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Cairo', 'Tajawal', sans-serif;
+      background-color: #F8FAFC;
+      color: #0F172A;
+    }
+
+    .font-en {
+      font-family: 'Inter', sans-serif;
+      direction: ltr;
+    }
+
+    /* Smooth card transitions */
+    .fade-in {
+      animation: fadeIn 0.35s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F1F5F9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+
+    /* Print Styling for Official Clinical Report */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 12mm;
+      }
+
+      body {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+        font-size: 11pt !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      .print-only {
+        display: block !important;
+      }
+
+      .print-container {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+      }
+
+      .page-break-before {
+        page-break-before: always;
+      }
+
+      .avoid-break {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+      }
+
+      th, td {
+        border: 1px solid #CBD5E1 !important;
+        padding: 6px 8px !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-emerald-100 selection:text-emerald-900">
+
+  <!-- Top Institutional Navigation Bar (Hidden during print) -->
+  <header id="app-navbar" class="no-print bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <img src="image_4f89bd.jpg" alt="شعار جامعة المنوفية" class="w-10 h-10 object-contain rounded-lg border border-slate-100 p-0.5 bg-white" onerror="this.src='https://placehold.co/80x80/146C43/FFFFFF?text=MU'">
+        <div>
+          <h1 class="text-sm sm:text-base font-bold text-slate-800 leading-tight">قائمة "بيك" للاكتئاب (BDI)</h1>
+          <p class="text-[11px] sm:text-xs text-slate-500">جامعة المنوفية • منصة التقييم الإكلينيكي والتربوي</p>
+        </div>
+      </div>
+
+      <!-- Step Indicator Pills -->
+      <nav aria-label="مراحل التطبيق" class="hidden md:flex items-center gap-1.5 text-xs font-semibold">
+        <span id="nav-step-1" class="px-3 py-1.5 rounded-full bg-emerald-700 text-white transition">1. الغلاف</span>
+        <i class="fa-solid fa-chevron-left text-slate-300 text-[10px]"></i>
+        <span id="nav-step-2" class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 transition">2. بيانات المفحوص</span>
+        <i class="fa-solid fa-chevron-left text-slate-300 text-[10px]"></i>
+        <span id="nav-step-3" class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 transition">3. بنود المقياس (21)</span>
+        <i class="fa-solid fa-chevron-left text-slate-300 text-[10px]"></i>
+        <span id="nav-step-4" class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 transition">4. المعالجة والتصنيف</span>
+        <i class="fa-solid fa-chevron-left text-slate-300 text-[10px]"></i>
+        <span id="nav-step-5" class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 transition">5. التقرير ثنائي اللغة</span>
+      </nav>
+
+      <!-- Demo Fill Helper for Examiners/Testing -->
+      <div class="flex items-center gap-2">
+        <button id="demo-fill-btn" onclick="openDemoModal()" title="تعبئة تجريبية سريعة للمحكمين والباحثين" class="text-xs font-semibold px-3 py-1.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <span class="hidden sm:inline">معاينة تجريبية</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 w-full max-w-6xl mx-auto px-4 py-6 sm:py-8">
+
+    <!-- ===================================================================== -->
+    <!-- STAGE 1: COVER PAGE (صفحة الغلاف)                                      -->
+    <!-- ===================================================================== -->
+    <section id="stage-1" class="fade-in">
+      <div class="bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden">
+        <!-- Decorative Top Academic Banner -->
+        <div class="bg-gradient-to-l from-emerald-900 via-emerald-800 to-teal-900 text-white px-6 py-4 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2 text-xs sm:text-sm font-medium text-emerald-100">
+            <i class="fa-solid fa-building-columns text-amber-400"></i>
+            <span>جمهورية مصر العربية • وزارة التعليم العالي والبحث العلمي • جامعة المنوفية</span>
+          </div>
+          <span class="font-en text-xs font-semibold tracking-wider uppercase bg-white/10 px-3 py-1 rounded-full text-amber-300">
+            Clinical Psychometric System
+          </span>
+        </div>
+
+        <div class="p-6 sm:p-10 lg:p-12">
+          <!-- Three Official Institutional Logos -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 items-center justify-items-center bg-slate-50/90 border border-slate-200/70 rounded-2xl p-6 mb-8">
+            <!-- Faculty of Specific Education -->
+            <div class="flex flex-col items-center text-center order-2 sm:order-1">
+              <div class="w-24 h-24 sm:w-28 sm:h-28 bg-white rounded-2xl shadow-sm border border-slate-200 p-2 flex items-center justify-center mb-2.5">
+                <img src="image_4f8c66.jpg" alt="شعار كلية التربية النوعية - جامعة المنوفية" class="max-h-full max-w-full object-contain" onerror="this.src='https://placehold.co/120x120/991B1B/FFFFFF?text=التربية+النوعية'">
+              </div>
+              <h3 class="text-sm font-bold text-slate-800">كلية التربية النوعية</h3>
+              <p class="text-xs text-slate-600">قسم الحاسب الآلي لذوي الاحتياجات الخاصة</p>
+            </div>
+
+            <!-- Menoufia University (Center) -->
+            <div class="flex flex-col items-center text-center order-1 sm:order-2">
+              <div class="w-28 h-28 sm:w-32 sm:h-32 bg-white rounded-2xl shadow-md border-2 border-emerald-700/20 p-2.5 flex items-center justify-center mb-2.5">
+                <img src="image_4f89bd.jpg" alt="شعار جامعة المنوفية" class="max-h-full max-w-full object-contain" onerror="this.src='https://placehold.co/140x140/146C43/FFFFFF?text=جامعة+المنوفية'">
+              </div>
+              <h2 class="text-base sm:text-lg font-extrabold text-emerald-900">جامعة المنوفية</h2>
+              <p class="font-en text-xs font-semibold text-slate-500">Menoufia University</p>
+            </div>
+
+            <!-- Faculty of Arts -->
+            <div class="flex flex-col items-center text-center order-3">
+              <div class="w-24 h-24 sm:w-28 sm:h-28 bg-white rounded-2xl shadow-sm border border-slate-200 p-2 flex items-center justify-center mb-2.5">
+                <img src="image_4f8c6d.jpg" alt="شعار كلية الآداب - جامعة المنوفية" class="max-h-full max-w-full object-contain" onerror="this.src='https://placehold.co/120x120/B91C1C/FFFFFF?text=كلية+الآداب'">
+              </div>
+              <h3 class="text-sm font-bold text-slate-800">كلية الآداب</h3>
+              <p class="text-xs text-slate-600">قسم علم النفس</p>
+            </div>
+          </div>
+
+          <!-- Title & Psychometric Attribution -->
+          <div class="text-center max-w-3xl mx-auto mb-8">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm font-bold mb-4">
+              <i class="fa-solid fa-brain"></i>
+              <span>أداة التقييم الإكلينيكي والقياسي للاكتئاب</span>
+            </div>
+
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 mb-3 tracking-tight">
+              قائمة "بيك" للاكتئاب
+            </h1>
+            <p class="font-en text-lg sm:text-2xl font-bold text-emerald-800 mb-6">
+              Beck Depression Inventory (BDI)
+            </p>
+
+            <!-- Authors & Translator Box -->
+            <div class="bg-gradient-to-br from-slate-50 to-emerald-50/40 border border-slate-200 rounded-2xl p-5 sm:p-6 text-right sm:text-center shadow-inner mb-6">
+              <p class="text-sm sm:text-base text-slate-700 leading-relaxed mb-2">
+                <span class="font-bold text-slate-900"><i class="fa-solid fa-feather-pointed text-emerald-700 ml-1.5"></i>المؤلفون الأصليون:</span>
+                أعده أصلاً <span class="font-bold text-emerald-900">آرون بيك (Aaron T. Beck)</span> و<span class="font-bold text-emerald-900">روبرت ستير (Robert A. Steer)</span> عام (1971).
+              </p>
+              <p class="text-sm sm:text-base text-slate-700 leading-relaxed">
+                <span class="font-bold text-slate-900"><i class="fa-solid fa-language text-emerald-700 ml-1.5"></i>الترجمة والتقنين العربي:</span>
+                قام بترجمته إلى اللغة العربية <span class="font-bold text-emerald-900">الأستاذ الدكتور/ أحمد محمد عبد الخالق</span>.
+              </p>
+            </div>
+
+            <!-- Academic Cooperation & Dedication Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-right mb-8">
+              <div class="bg-white border-r-4 border-emerald-700 border border-slate-200 rounded-2xl p-4 shadow-sm">
+                <div class="flex items-center gap-2 text-emerald-800 font-bold text-sm mb-1.5">
+                  <i class="fa-solid fa-laptop-code"></i>
+                  <span>إهداء وتطوير برمجي مقدم من:</span>
+                </div>
+                <p class="text-slate-800 font-bold text-base">كلية التربية النوعية - جامعة المنوفية</p>
+                <p class="text-slate-600 text-sm">قسم الحاسب الآلي لذوي الاحتياجات الخاصة</p>
+              </div>
+
+              <div class="bg-white border-r-4 border-amber-500 border border-slate-200 rounded-2xl p-4 shadow-sm">
+                <div class="flex items-center gap-2 text-amber-800 font-bold text-sm mb-1.5">
+                  <i class="fa-solid fa-handshake-angle"></i>
+                  <span>موجه إلى / بالتعاون الأكاديمي مع:</span>
+                </div>
+                <p class="text-slate-800 font-bold text-base">كلية الآداب - جامعة المنوفية</p>
+                <p class="text-slate-600 text-sm">قسم علم النفس والدراسات الإكلينيكية</p>
+              </div>
+            </div>
+
+            <!-- Primary CTA Button -->
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <button onclick="goToStage(2)" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-l from-emerald-800 to-emerald-700 hover:from-emerald-900 hover:to-emerald-800 text-white font-bold text-base sm:text-lg shadow-lg shadow-emerald-900/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-3">
+                <span>ابدأ الجلسة التقييمية / تسجيل بيانات المفحوص</span>
+                <i class="fa-solid fa-arrow-left"></i>
+              </button>
+            </div>
+            <p class="text-xs text-slate-400 mt-4">
+              جميع البيانات المدخلة تخضع لمعايير السرية الإكلينيكية والأخلاقيات المهنية للبحث النفسي.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- STAGE 2: EXAMINEE INFO & LOGIN (صفحة تسجيل بيانات المفحوص)           -->
+    <!-- ===================================================================== -->
+    <section id="stage-2" class="hidden fade-in">
+      <div class="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+        <div class="bg-emerald-900 text-white px-6 py-5 flex items-center justify-between">
+          <div>
+            <span class="text-xs text-emerald-300 font-semibold block mb-0.5">المرحلة الثانية • التوثيق الإكلينيكي</span>
+            <h2 class="text-xl sm:text-2xl font-bold">بيانات الحالة / المفحوص</h2>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-amber-300 text-xl">
+            <i class="fa-solid fa-user-shield"></i>
+          </div>
+        </div>
+
+        <form id="examinee-form" onsubmit="handleExamineeSubmit(event)" class="p-6 sm:p-8 space-y-6">
+          <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3 text-sm text-amber-900">
+            <i class="fa-solid fa-lock text-amber-600 mt-1"></i>
+            <p>
+              <strong>ملاحظة الخصوصية والسرية:</strong> يمكن إدخال الاسم الكامل للمفحوص أو استخدام <strong>كود تعريفي (مثل: CASE-2026-01)</strong> للحفاظ على السرية الطبية والتشخيصية.
+            </p>
+          </div>
+
+          <!-- Field 1: Examinee Name or Privacy Code -->
+          <div>
+            <label for="examinee-name" class="block text-sm font-bold text-slate-800 mb-2">
+              اسم المفحوص أو الكود التعريفي <span class="text-rose-600">*</span>
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400">
+                <i class="fa-solid fa-id-card"></i>
+              </span>
+              <input
+                type="text"
+                id="examinee-name"
+                required
+                placeholder="أدخل اسم الحالة أو الكود التعريفي (مثال: م. ع / ID-104)"
+                oninput="validateExamineeForm()"
+                class="w-full pr-10 pl-4 py-3.5 rounded-xl border border-slate-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 outline-none transition text-slate-900 font-medium"
+              />
+            </div>
+          </div>
+
+          <!-- Field 2: Age or Date of Birth -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="examinee-age" class="block text-sm font-bold text-slate-800 mb-2">
+                العمر (بالسنوات) <span class="text-rose-600">*</span>
+              </label>
+              <div class="relative">
+                <span class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400">
+                  <i class="fa-solid fa-hourglass-half"></i>
+                </span>
+                <input
+                  type="number"
+                  id="examinee-age"
+                  min="12"
+                  max="110"
+                  required
+                  placeholder="مثال: 22"
+                  oninput="validateExamineeForm()"
+                  class="w-full pr-10 pl-4 py-3.5 rounded-xl border border-slate-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 outline-none transition text-slate-900 font-medium"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label for="examinee-dob" class="block text-sm font-bold text-slate-800 mb-2">
+                أو تاريخ الميلاد (لحساب العمر تلقائياً)
+              </label>
+              <input
+                type="date"
+                id="examinee-dob"
+                onchange="calculateAgeFromDOB()"
+                class="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 outline-none transition text-slate-700 font-medium"
+              />
+            </div>
+          </div>
+
+          <!-- Field 3: Gender & Test Date -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="examinee-gender" class="block text-sm font-bold text-slate-800 mb-2">
+                النوع (اختياري)
+              </label>
+              <select
+                id="examinee-gender"
+                class="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 outline-none transition text-slate-800 font-medium bg-white"
+              >
+                <option value="غير محدد / Not Specified">غير محدد (يفضل عدم الذكر)</option>
+                <option value="ذكر / Male">ذكر (Male)</option>
+                <option value="أنثى / Female">أنثى (Female)</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="test-date" class="block text-sm font-bold text-slate-800 mb-2">
+                تاريخ تطبيق الاختبار (تلقائي من النظام) <span class="text-rose-600">*</span>
+              </label>
+              <div class="relative">
+                <input
+                  type="date"
+                  id="test-date"
+                  required
+                  oninput="validateExamineeForm()"
+                  class="w-full px-4 py-3.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 outline-none transition text-slate-800 font-semibold"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Examiner Name (Optional) -->
+          <div>
+            <label for="examiner-name" class="block text-sm font-bold text-slate-800 mb-2">
+              اسم الفاحص / الأخصائي النفسي (اختياري)
+            </label>
+            <input
+              type="text"
+              id="examiner-name"
+              placeholder="مثال: أخصائي نفسي إكلينيكي / باحث بقسم علم النفس"
+              class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 outline-none transition text-slate-800"
+            />
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="pt-4 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-center justify-between gap-3">
+            <button type="button" onclick="goToStage(1)" class="w-full sm:w-auto px-5 py-3 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 font-bold text-sm transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-arrow-right"></i>
+              <span>العودة للغلاف</span>
+            </button>
+
+            <button
+              type="submit"
+              id="start-test-btn"
+              disabled
+              class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-emerald-700 text-white font-bold text-base shadow-md disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed disabled:shadow-none hover:bg-emerald-800 transition flex items-center justify-center gap-2"
+            >
+              <span>بدء القائمة (21 بنداً)</span>
+              <i class="fa-solid fa-play text-xs"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- STAGE 3: INTERACTIVE 21 ITEMS (صفحات بنود الاختبار التفاعلية)         -->
+    <!-- ===================================================================== -->
+    <section id="stage-3" class="hidden fade-in">
+      <div class="max-w-4xl mx-auto space-y-5">
+
+        <!-- Standardized Clinical Instructions Banner -->
+        <div class="bg-gradient-to-l from-emerald-900 to-teal-900 text-white rounded-2xl p-4 sm:p-5 shadow-md border border-emerald-700">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0 mt-0.5 text-amber-300">
+              <i class="fa-solid fa-clipboard-list text-lg"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm sm:text-base text-amber-300 mb-1">تعليمات تطبيق المقياس:</h3>
+              <p class="text-xs sm:text-sm text-emerald-50 leading-relaxed">
+                اقرأ كل مجموعة من الجمل بعناية، ثم اختر الجملة التي تصف حالتك النفسية وشعورك السائد <strong>خلال السبعة أيام الماضية بما فيها اليوم</strong> (بتقدير من 0 إلى 3).
+                <span class="inline-block bg-white/15 text-amber-200 px-2 py-0.5 rounded-md text-xs mt-1">
+                  قاعدة التطبيق الإكلينيكي: في حال اختيار أكثر من عبارة في البند الواحد، يقوم النظام تلقائياً باعتماد وتسجيل <strong>التقدير الأعلى</strong>.
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress Bar & Question Counter Card -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+            <div class="flex items-center gap-2">
+              <span id="item-counter-badge" class="px-3.5 py-1 rounded-full bg-emerald-100 text-emerald-900 font-extrabold text-sm">
+                البند 1 من 21
+              </span>
+              <span id="item-domain-badge" class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 font-semibold text-xs">
+                المجال الوجداني
+              </span>
+            </div>
+            <div class="text-xs sm:text-sm font-bold text-slate-600">
+              نسبة الإنجاز: <span id="progress-percent" class="text-emerald-700">0%</span>
+              <span class="text-slate-400 mx-1">|</span>
+              تمت الإجابة على: <span id="answered-count" class="text-slate-900">0</span> / 21
+            </div>
+          </div>
+
+          <!-- Progress Track -->
+          <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/60">
+            <div id="progress-bar-fill" class="h-full bg-gradient-to-l from-emerald-600 to-teal-500 rounded-full transition-all duration-300" style="width: 4.76%;"></div>
+          </div>
+
+          <!-- Quick 21-Item Navigator Dots -->
+          <div id="item-dots-grid" class="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-center gap-1.5">
+            <!-- Populated dynamically by JS -->
+          </div>
+        </div>
+
+        <!-- Current Item Card -->
+        <div id="question-card" class="bg-white rounded-3xl p-6 sm:p-8 shadow-lg border border-slate-200 transition-all">
+          <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b border-slate-100">
+            <div>
+              <span class="text-xs font-bold text-emerald-700 uppercase tracking-wide block mb-1">البند رقم (<span id="q-number">1</span>)</span>
+              <h2 id="q-title" class="text-xl sm:text-2xl font-extrabold text-slate-900">الحزن والكآبة (Sadness)</h2>
+            </div>
+
+            <!-- Multi-select Clinical Rule Indicator -->
+            <div id="multi-select-badge" class="hidden px-3.5 py-1.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold flex items-center gap-2">
+              <i class="fa-solid fa-scale-balanced text-amber-600"></i>
+              <span>تم تحديد أكثر من عبارة — تم اعتماد التقدير الأعلى تلقائياً (<span id="recorded-score-span">0</span>)</span>
+            </div>
+          </div>
+
+          <!-- 4 Options Container -->
+          <div id="options-container" class="space-y-3.5">
+            <!-- Options injected dynamically -->
+          </div>
+
+          <!-- Validation Hint -->
+          <div id="selection-warning" class="hidden mt-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm font-bold flex items-center gap-2">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>يرجى اختيار عبارة واحدة على الأقل تصف حالتك قبل الانتقال للبند التالي.</span>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="mt-8 pt-5 border-t border-slate-100 flex items-center justify-between gap-4">
+            <button
+              type="button"
+              id="prev-btn"
+              onclick="prevItem()"
+              class="px-5 py-3 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed font-bold text-sm sm:text-base transition flex items-center gap-2"
+            >
+              <i class="fa-solid fa-arrow-right"></i>
+              <span>السؤال السابق</span>
+            </button>
+
+            <button
+              type="button"
+              id="next-btn"
+              onclick="nextItem()"
+              class="px-7 py-3.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm sm:text-base shadow-md transition flex items-center gap-2"
+            >
+              <span id="next-btn-text">السؤال التالي</span>
+              <i id="next-btn-icon" class="fa-solid fa-arrow-left"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- STAGE 4: SCORING & SEVERITY CALCULATION (معالجة الدرجات والتصنيف)     -->
+    <!-- ===================================================================== -->
+    <section id="stage-4" class="hidden fade-in">
+      <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+        <div class="bg-slate-900 text-white px-6 py-5 flex items-center justify-between">
+          <div>
+            <span class="text-xs text-emerald-400 font-semibold block">المرحلة الرابعة • محرك التصحيح الإكلينيكي</span>
+            <h2 class="text-xl sm:text-2xl font-bold">معالجة الدرجات الخام وتصنيف شدة الاكتئاب</h2>
+          </div>
+          <i class="fa-solid fa-calculator text-2xl text-amber-400"></i>
+        </div>
+
+        <div class="p-6 sm:p-8 space-y-6">
+          <!-- Critical Clinical Alerts Banner (Item 2 & Item 9) -->
+          <div id="stage4-alerts-container" class="space-y-3">
+            <!-- Populated dynamically if Item 2 > 0 or Item 9 > 0 -->
+          </div>
+
+          <!-- Raw Score & Classification Summary -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <!-- Raw Score Box -->
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center flex flex-col justify-center">
+              <span class="text-xs font-bold text-slate-500 mb-1">مجموع الدرجات الخام (Raw Score)</span>
+              <div class="text-5xl font-extrabold text-slate-900 my-2">
+                <span id="s4-raw-score">0</span>
+                <span class="text-xl font-semibold text-slate-400">/ 63</span>
+              </div>
+              <span class="font-en text-xs text-slate-500">Total BDI-I Score</span>
+            </div>
+
+            <!-- Severity Level Box -->
+            <div id="s4-severity-card" class="md:col-span-2 rounded-2xl p-6 border-2 flex flex-col justify-center">
+              <span class="text-xs font-bold uppercase tracking-wider mb-1 opacity-80">التصنيف المعياري لشدة الاكتئاب</span>
+              <h3 id="s4-severity-ar" class="text-2xl sm:text-3xl font-extrabold mb-1">داخل المدى الأقل (في حده الأدنى)</h3>
+              <p id="s4-severity-en" class="font-en text-base font-bold opacity-90 mb-3">Within Minimal Range (Minimal Depression)</p>
+              <p id="s4-severity-desc" class="text-sm leading-relaxed opacity-90"></p>
+            </div>
+          </div>
+
+          <!-- Diagnostic Cutoff Reference Table -->
+          <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200">
+            <h4 class="font-bold text-sm text-slate-800 mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-table-list text-emerald-700"></i>
+              <span>جدول المعايير التشخيصية المعتمدة لقائمة "بيك" للاكتئاب:</span>
+            </h4>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center text-xs sm:text-sm">
+              <div id="cutoff-0" class="p-3 rounded-xl border border-slate-200 bg-white">
+                <div class="font-extrabold text-base mb-0.5">0 – 9</div>
+                <div class="font-bold">داخل المدى الأقل</div>
+                <div class="font-en text-[11px] text-slate-500">Minimal</div>
+              </div>
+              <div id="cutoff-1" class="p-3 rounded-xl border border-slate-200 bg-white">
+                <div class="font-extrabold text-base mb-0.5">10 – 16</div>
+                <div class="font-bold">اكتئاب معتدل</div>
+                <div class="font-en text-[11px] text-slate-500">Mild</div>
+              </div>
+              <div id="cutoff-2" class="p-3 rounded-xl border border-slate-200 bg-white">
+                <div class="font-extrabold text-base mb-0.5">17 – 29</div>
+                <div class="font-bold">اكتئاب متوسط</div>
+                <div class="font-en text-[11px] text-slate-500">Moderate</div>
+              </div>
+              <div id="cutoff-3" class="p-3 rounded-xl border border-slate-200 bg-white">
+                <div class="font-extrabold text-base mb-0.5">30 – 63</div>
+                <div class="font-bold">اكتئاب شديد</div>
+                <div class="font-en text-[11px] text-slate-500">Severe</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Domain Subscores Preview -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="p-4 rounded-2xl border border-slate-200 bg-white">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-bold text-slate-500">الأعراض المعرفية (Cognitive)</span>
+                <span id="s4-cog-score" class="text-sm font-extrabold text-indigo-700">0 / 27</span>
+              </div>
+              <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div id="s4-cog-bar" class="h-full bg-indigo-600 rounded-full" style="width: 0%"></div>
+              </div>
+            </div>
+            <div class="p-4 rounded-2xl border border-slate-200 bg-white">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-bold text-slate-500">الأعراض الوجدانية (Affective)</span>
+                <span id="s4-aff-score" class="text-sm font-extrabold text-emerald-700">0 / 18</span>
+              </div>
+              <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div id="s4-aff-bar" class="h-full bg-emerald-600 rounded-full" style="width: 0%"></div>
+              </div>
+            </div>
+            <div class="p-4 rounded-2xl border border-slate-200 bg-white">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-bold text-slate-500">الأعراض البدنية/الجسمية (Somatic)</span>
+                <span id="s4-som-score" class="text-sm font-extrabold text-amber-700">0 / 18</span>
+              </div>
+              <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div id="s4-som-bar" class="h-full bg-amber-600 rounded-full" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Proceed to Bilingual AI Report -->
+          <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <button onclick="goToStage(3)" class="w-full sm:w-auto px-5 py-3 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 font-bold text-sm transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-pen-to-square"></i>
+              <span>مراجعة الإجابات</span>
+            </button>
+
+            <button onclick="generateAndShowReport()" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-l from-emerald-800 to-teal-700 hover:from-emerald-900 hover:to-teal-800 text-white font-bold text-base shadow-lg transition flex items-center justify-center gap-2.5">
+              <i class="fa-solid fa-file-medical"></i>
+              <span>إصدار التقرير التشخيصي ثنائي اللغة والطباعة</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- STAGE 5: BILINGUAL AI REPORT & PRINT PAGE (التقرير التشخيصي للطباعة)  -->
+    <!-- ===================================================================== -->
+    <section id="stage-5" class="hidden fade-in">
+      <!-- Top Control Toolbar (Hidden on Print) -->
+      <div class="no-print mb-6 bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <button onclick="goToStage(4)" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 font-bold text-xs sm:text-sm transition flex items-center gap-1.5">
+            <i class="fa-solid fa-arrow-right"></i>
+            <span>العودة لملخص الدرجات</span>
+          </button>
+          <button onclick="resetFullAssessment()" class="px-4 py-2.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 font-bold text-xs sm:text-sm transition flex items-center gap-1.5">
+            <i class="fa-solid fa-rotate-right"></i>
+            <span>جلسة جديدة</span>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2.5">
+          <!-- Display Language Toggle for Screen Viewing (Print always shows full Bilingual Report) -->
+          <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-bold">
+            <button id="lang-mode-both" onclick="setReportViewMode('both')" class="px-3 py-1.5 rounded-lg bg-white text-emerald-800 shadow-sm transition">ثنائي اللغة (عربي / EN)</button>
+            <button id="lang-mode-ar" onclick="setReportViewMode('ar')" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">عربي فقط</button>
+            <button id="lang-mode-en" onclick="setReportViewMode('en')" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition font-en">English Only</button>
+          </div>
+
+          <button onclick="window.print()" class="px-6 py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs sm:text-sm shadow-md transition flex items-center gap-2">
+            <i class="fa-solid fa-print"></i>
+            <span>طباعة التقرير / تصدير PDF</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- OFFICIAL PRINTABLE CLINICAL REPORT DOCUMENT -->
+      <div id="printable-report" class="print-container bg-white rounded-3xl shadow-xl border border-slate-200 p-6 sm:p-10 space-y-7">
+
+        <!-- 1. Official Institutional Report Header with 3 Logos -->
+        <div class="border-b-2 border-emerald-800 pb-5 avoid-break">
+          <div class="grid grid-cols-3 items-center gap-4 mb-4">
+            <!-- Right: Specific Education -->
+            <div class="flex items-center gap-3 justify-start">
+              <img src="image_4f8c66.jpg" alt="كلية التربية النوعية" class="w-14 h-14 sm:w-16 sm:h-16 object-contain" onerror="this.src='https://placehold.co/80x80/991B1B/FFFFFF?text=التربية'">
+              <div class="text-right">
+                <p class="text-xs sm:text-sm font-extrabold text-slate-900">كلية التربية النوعية</p>
+                <p class="text-[11px] text-slate-600">قسم الحاسب الآلي لذوي الاحتياجات الخاصة</p>
+                <p class="font-en text-[10px] text-slate-500">Faculty of Specific Education</p>
+              </div>
+            </div>
+
+            <!-- Center: Menoufia University -->
+            <div class="flex flex-col items-center text-center">
+              <img src="image_4f89bd.jpg" alt="جامعة المنوفية" class="w-16 h-16 sm:w-20 sm:h-20 object-contain mb-1" onerror="this.src='https://placehold.co/90x90/146C43/FFFFFF?text=MU'">
+              <p class="text-xs sm:text-sm font-extrabold text-emerald-900">جامعة المنوفية</p>
+              <p class="font-en text-[10px] font-bold text-slate-500">MENOUFIA UNIVERSITY</p>
+            </div>
+
+            <!-- Left: Faculty of Arts -->
+            <div class="flex items-center gap-3 justify-end">
+              <div class="text-left">
+                <p class="text-xs sm:text-sm font-extrabold text-slate-900">كلية الآداب</p>
+                <p class="text-[11px] text-slate-600">قسم علم النفس</p>
+                <p class="font-en text-[10px] text-slate-500">Faculty of Arts - Dept. of Psychology</p>
+              </div>
+              <img src="image_4f8c6d.jpg" alt="كلية الآداب" class="w-14 h-14 sm:w-16 sm:h-16 object-contain" onerror="this.src='https://placehold.co/80x80/B91C1C/FFFFFF?text=الآداب'">
+            </div>
+          </div>
+
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3 text-center">
+            <h1 class="text-lg sm:text-2xl font-extrabold text-slate-900">
+              التقرير التشخيصي الإكلينيكي لقائمة "بيك" للاكتئاب (BDI)
+            </h1>
+            <p class="font-en text-xs sm:text-sm font-bold text-emerald-800 mt-0.5">
+              Clinical Psychometric Diagnostic Report — Beck Depression Inventory (BDI)
+            </p>
+            <p class="text-[11px] text-slate-500 mt-1">
+              تأليف: آرون بيك وروبرت ستير (1971) • الترجمة العربية: أ.د. أحمد عبد الخالق
+            </p>
+          </div>
+        </div>
+
+        <!-- 2. Examinee Metadata & Raw Score Box -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 avoid-break">
+          <!-- Examinee Details -->
+          <div class="md:col-span-7 bg-slate-50/80 border border-slate-200 rounded-2xl p-4 sm:p-5">
+            <h3 class="text-xs font-extrabold text-emerald-900 uppercase mb-3 border-b border-slate-200 pb-1.5 flex items-center justify-between">
+              <span>بيانات المفحوص والجلسة الإكلينيكية</span>
+              <span class="font-en">Examinee & Session Info</span>
+            </h3>
+            <div class="grid grid-cols-2 gap-y-2.5 gap-x-4 text-xs sm:text-sm">
+              <div>
+                <span class="text-slate-500 block text-[11px]">الاسم / الكود التعريفي (ID):</span>
+                <span id="rep-name" class="font-bold text-slate-900">—</span>
+              </div>
+              <div>
+                <span class="text-slate-500 block text-[11px]">العمر (Age):</span>
+                <span id="rep-age" class="font-bold text-slate-900">—</span>
+              </div>
+              <div>
+                <span class="text-slate-500 block text-[11px]">النوع (Gender):</span>
+                <span id="rep-gender" class="font-bold text-slate-900">—</span>
+              </div>
+              <div>
+                <span class="text-slate-500 block text-[11px]">تاريخ التطبيق (Date):</span>
+                <span id="rep-date" class="font-bold text-slate-900">—</span>
+              </div>
+              <div class="col-span-2">
+                <span class="text-slate-500 block text-[11px]">الفاحص / الجهة المطبقة (Examiner):</span>
+                <span id="rep-examiner" class="font-bold text-slate-900">عيادة القياس النفسي - قسم علم النفس</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Score & Diagnosis Summary Box -->
+          <div id="rep-score-box" class="md:col-span-5 rounded-2xl p-4 sm:p-5 border-2 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold opacity-80">الدرجة الخام الكلية (Raw Score)</span>
+              <span class="font-en text-xs font-bold opacity-80">Max: 63</span>
+            </div>
+            <div class="my-2 flex items-baseline gap-2">
+              <span id="rep-raw-score" class="text-4xl sm:text-5xl font-extrabold">0</span>
+              <span class="text-lg font-bold opacity-75">/ 63</span>
+            </div>
+            <div>
+              <div id="rep-severity-ar" class="text-base sm:text-lg font-extrabold">داخل المدى الأقل (في حده الأدنى)</div>
+              <div id="rep-severity-en" class="font-en text-xs sm:text-sm font-bold opacity-90">Within Minimal Range</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Critical Clinical Alerts Section (Item 2 & Item 9) -->
+        <div id="rep-critical-alerts" class="space-y-3 avoid-break">
+          <!-- Injected if Item 2 or Item 9 > 0 -->
+        </div>
+
+        <!-- 4. Symptom Domain Quantitative Profile (Cognitive, Affective, Somatic) -->
+        <div class="border border-slate-200 rounded-2xl p-5 avoid-break">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-4 border-b border-slate-100 pb-2">
+            <h3 class="text-sm sm:text-base font-extrabold text-slate-900">
+              <i class="fa-solid fa-chart-pie text-emerald-700 ml-1.5"></i>
+              التوزيع الكمي للأبعاد الإكلينيكية للأعراض
+            </h3>
+            <span class="font-en text-xs font-bold text-slate-500">Quantitative Symptom Domain Breakdown</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <!-- Cognitive -->
+            <div class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-3.5">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-xs font-extrabold text-indigo-950">البُعد المعرفي</span>
+                <span id="rep-cog-val" class="text-xs font-extrabold text-indigo-700">0 / 27 (0%)</span>
+              </div>
+              <p class="font-en text-[11px] text-indigo-800/80 mb-2">Cognitive Domain (9 Items)</p>
+              <div class="w-full h-2 bg-indigo-100 rounded-full overflow-hidden">
+                <div id="rep-cog-bar" class="h-full bg-indigo-600" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Affective -->
+            <div class="bg-emerald-50/50 border border-emerald-100 rounded-xl p-3.5">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-xs font-extrabold text-emerald-950">البُعد الوجداني</span>
+                <span id="rep-aff-val" class="text-xs font-extrabold text-emerald-700">0 / 18 (0%)</span>
+              </div>
+              <p class="font-en text-[11px] text-emerald-800/80 mb-2">Affective Domain (6 Items)</p>
+              <div class="w-full h-2 bg-emerald-100 rounded-full overflow-hidden">
+                <div id="rep-aff-bar" class="h-full bg-emerald-600" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Somatic -->
+            <div class="bg-amber-50/50 border border-amber-100 rounded-xl p-3.5">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-xs font-extrabold text-amber-950">البُعد البدني والجسمي</span>
+                <span id="rep-som-val" class="text-xs font-extrabold text-amber-700">0 / 18 (0%)</span>
+              </div>
+              <p class="font-en text-[11px] text-amber-800/80 mb-2">Somatic / Vegetative (6 Items)</p>
+              <div class="w-full h-2 bg-amber-100 rounded-full overflow-hidden">
+                <div id="rep-som-bar" class="h-full bg-amber-600" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. AI-Powered Bilingual Clinical Interpretation -->
+        <div class="space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-900 text-white px-5 py-3 rounded-2xl">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-microchip text-amber-400"></i>
+              <h3 class="text-sm sm:text-base font-bold">التحليل الإكلينيكي الذكي والتفسير التشخيصي التربوي</h3>
+            </div>
+            <span class="font-en text-xs font-semibold text-emerald-300">AI-Assisted Bilingual Clinical Synthesis</span>
+          </div>
+
+          <!-- Bilingual Grid (Arabic & English Side-by-Side or Stacked) -->
+          <div id="bilingual-analysis-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <!-- Arabic Clinical Report Column -->
+            <div id="report-col-ar" class="bg-slate-50/70 border border-slate-200 rounded-2xl p-5 space-y-4 text-right">
+              <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                <h4 class="font-extrabold text-emerald-900 text-base">التقرير التحليلي (النسخة العربية)</h4>
+                <span class="text-[11px] bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-bold">عربي</span>
+              </div>
+
+              <div class="avoid-break">
+                <h5 class="text-xs font-extrabold text-slate-800 mb-1 flex items-center gap-1.5">
+                  <i class="fa-solid fa-wave-square text-emerald-700"></i>
+                  <span>1. النمط العام للأعراض (المعرفية، الوجدانية، والبدنية):</span>
+                </h5>
+                <p id="ai-ar-pattern" class="text-xs sm:text-sm text-slate-700 leading-relaxed"></p>
+              </div>
+
+              <div class="avoid-break">
+                <h5 class="text-xs font-extrabold text-emerald-800 mb-1 flex items-center gap-1.5">
+                  <i class="fa-solid fa-shield-heart text-emerald-600"></i>
+                  <span>2. نقاط القوة والموارد النفسية (جوانب الاستقرار):</span>
+                </h5>
+                <p id="ai-ar-strengths" class="text-xs sm:text-sm text-slate-700 leading-relaxed"></p>
+              </div>
+
+              <div class="avoid-break">
+                <h5 class="text-xs font-extrabold text-amber-800 mb-1 flex items-center gap-1.5">
+                  <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+                  <span>3. الأعراض البارزة ومناطق القصور التي تتطلب تدخلاً:</span>
+                </h5>
+                <p id="ai-ar-deficits" class="text-xs sm:text-sm text-slate-700 leading-relaxed"></p>
+              </div>
+
+              <div class="avoid-break bg-white p-3.5 rounded-xl border border-slate-200">
+                <h5 class="text-xs font-extrabold text-slate-900 mb-1 flex items-center gap-1.5">
+                  <i class="fa-solid fa-stethoscope text-emerald-700"></i>
+                  <span>4. التشخيص الإكلينيكي التربوي والتوصيات العلاجية:</span>
+                </h5>
+                <p id="ai-ar-diagnosis" class="text-xs sm:text-sm text-slate-800 leading-relaxed font-medium"></p>
+              </div>
+            </div>
+
+            <!-- English Clinical Report Column -->
+            <div id="report-col-en" class="font-en bg-slate-50/70 border border-slate-200 rounded-2xl p-5 space-y-4 text-left" dir="ltr">
+              <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                <h4 class="font-bold text-emerald-900 text-base">Clinical Analytical Report (English)</h4>
+                <span class="text-[11px] bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-bold">EN</span>
+              </div>
+
+              <div class="avoid-break">
+                <h5 class="text-xs font-bold text-slate-800 mb-1 flex items-center gap-1.5">
+                  <i class="fa-solid fa-wave-square text-emerald-700"></i>
+                  <span>1. Overall Symptom Pattern (Cognitive, Affective & Somatic):</span>
+                </h5>
+                <p id="ai-en-pattern" class="text-xs sm:text-sm text-slate-700 leading-relaxed"></p>
+              </div>
+
+              <div class="avoid-break">
+                <h5 class="text-xs font-bold text-emerald-800 mb-1 flex items-center gap-1.5">
+                  <i class="fa-solid fa-shield-heart text-emerald-600"></i>
+                  <span>2. Psychological Strengths & Coping Resources:</span>
+                </h5>
+                <p id="ai-en-strengths" class="text-xs sm:text-sm text-slate-700 leading-relaxed"></p>
+              </div>
+
+              <div class="avoid-break">
+                <h5 class="text-xs font-bold text-amber-800 mb-1 flex items-center gap-1.5">
+                  <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+                  <span>3. Prominent Symptoms & Areas Requiring Support:</span>
+                </h5>
+                <p id="ai-en-deficits" class="text-xs sm:text-sm text-slate-700 leading-relaxed"></p>
+              </div>
+
+              <div class="avoid-break bg-white p-3.5 rounded-xl border border-slate-200">
+                <h5 class="text-xs font-bold text-slate-900 mb-1 flex items-center gap-1.5">
+                  <i class="fa-solid fa-stethoscope text-emerald-700"></i>
+                  <span>4. Clinical-Educational Diagnosis & Recommendations:</span>
+                </h5>
+                <p id="ai-en-diagnosis" class="text-xs sm:text-sm text-slate-800 leading-relaxed font-medium"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. Detailed 21-Item Bilingual Response Breakdown Table -->
+        <div class="page-break-before pt-2">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <h3 class="text-sm sm:text-base font-extrabold text-slate-900">
+              <i class="fa-solid fa-list-check text-emerald-700 ml-1.5"></i>
+              سجل الاستجابات التفصيلي لبنود المقياس (21 بنداً)
+            </h3>
+            <span class="font-en text-xs font-bold text-slate-500">Detailed 21-Item Response Profile</span>
+          </div>
+
+          <div class="overflow-x-auto rounded-2xl border border-slate-200">
+            <table class="w-full text-xs sm:text-sm text-right">
+              <thead class="bg-slate-100 text-slate-800 font-bold border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3 text-center w-12">#</th>
+                  <th class="py-2.5 px-3">البُعد / العرض (Symptom / Domain)</th>
+                  <th class="py-2.5 px-3">الاستجابة المختارة (العربية)</th>
+                  <th class="py-2.5 px-3 font-en text-left" dir="ltr">Selected Response (English)</th>
+                  <th class="py-2.5 px-3 text-center w-16">الدرجة</th>
+                </tr>
+              </thead>
+              <tbody id="rep-items-tbody" class="divide-y divide-slate-200 bg-white">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 7. Official Signatures & Academic Footer -->
+        <div class="pt-6 border-t border-slate-200 avoid-break">
+          <div class="grid grid-cols-2 gap-8 text-center text-xs sm:text-sm text-slate-700 mb-6">
+            <div>
+              <p class="font-bold text-slate-900 mb-8">توقيع الأخصائي النفسي / الفاحص</p>
+              <div class="w-48 mx-auto border-b border-dashed border-slate-400"></div>
+              <p class="font-en text-[11px] text-slate-400 mt-1">Clinical Examiner Signature</p>
+            </div>
+            <div>
+              <p class="font-bold text-slate-900 mb-8">اعتماد رئيس القسم / المشرف الأكاديمي</p>
+              <div class="w-48 mx-auto border-b border-dashed border-slate-400"></div>
+              <p class="font-en text-[11px] text-slate-400 mt-1">Department / Academic Stamp</p>
+            </div>
+          </div>
+
+          <div class="text-center text-[11px] text-slate-500 bg-slate-50 py-2.5 px-4 rounded-xl border border-slate-200/70">
+            تطوير برمجي: كلية التربية النوعية (قسم الحاسب الآلي لذوي الاحتياجات الخاصة) بالتعاون مع كلية الآداب (قسم علم النفس) — جامعة المنوفية.
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Demo Fill Modal for Examiners / Evaluators -->
+  <div id="demo-modal" class="no-print hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 fade-in">
+      <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+        <h3 class="font-extrabold text-lg text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-flask-vial text-amber-500"></i>
+          <span>محاكاة الحالات الإكلينيكية</span>
+        </h3>
+        <button onclick="closeDemoModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-500">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <p class="text-xs sm:text-sm text-slate-600 mb-4 leading-relaxed">
+        اختر نموذج حالة تجريبية لاختبار نظام التصحيح التلقائي، والتنبيهات الإكلينيكية الحرجة (البند 2 والبند 9)، والتقرير ثنائي اللغة مباشرة:
+      </p>
+      <div class="space-y-2.5">
+        <button onclick="applyDemoScenario('minimal')" class="w-full text-right p-3.5 rounded-2xl border border-emerald-200 bg-emerald-50/70 hover:bg-emerald-100 transition">
+          <div class="font-bold text-emerald-900 text-sm">1. حالة مستقرة (المدى الأقل: 0 – 9)</div>
+          <div class="text-xs text-emerald-700">درجة خام منخفضة (5 / 63) بدون مؤشرات خطورة.</div>
+        </button>
+        <button onclick="applyDemoScenario('moderate')" class="w-full text-right p-3.5 rounded-2xl border border-amber-200 bg-amber-50/70 hover:bg-amber-100 transition">
+          <div class="font-bold text-amber-900 text-sm">2. حالة اكتئاب متوسط (17 – 29) + تنبيه التشاؤم</div>
+          <div class="text-xs text-amber-700">درجة خام متوسطة (22 / 63) مع تفعيل تنبيه البند رقم (2).</div>
+        </button>
+        <button onclick="applyDemoScenario('severe')" class="w-full text-right p-3.5 rounded-2xl border border-rose-200 bg-rose-50/70 hover:bg-rose-100 transition">
+          <div class="font-bold text-rose-900 text-sm">3. حالة اكتئاب شديد (30 – 63) + تنبيهات حرجة</div>
+          <div class="text-xs text-rose-700">درجة مرتفعة (38 / 63) مع تفعيل تنبيهات البند (2) والبند (9).</div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. AUTHENTIC 21-ITEM BECK DEPRESSION INVENTORY (BDI-I) DATA
+    //    Translated into Arabic by Dr. Ahmed Abdel-Khalek (د. أحمد عبد الخالق)
+    // =========================================================================
+    const BDI_ITEMS = [
+      {
+        id: 1,
+        domain: 'affective',
+        domainAr: 'البُعد الوجداني',
+        titleAr: 'الحزن والكآبة',
+        titleEn: 'Sadness',
+        options: [
+          { score: 0, ar: 'لا أشعر بالحزن.', en: 'I do not feel sad.' },
+          { score: 1, ar: 'أشعر بالحزن.', en: 'I feel sad.' },
+          { score: 2, ar: 'أشعر بالحزن طوال الوقت ولا أستطيع التخلص منه.', en: 'I am sad all the time and I can\'t snap out of it.' },
+          { score: 3, ar: 'أشعر بالحزن والتعاسة لدرجة لا أستطيع تحملها.', en: 'I am so sad and unhappy that I can\'t stand it.' }
+        ]
+      },
+      {
+        id: 2,
+        domain: 'cognitive',
+        domainAr: 'البُعد المعرفي',
+        titleAr: 'التشاؤم (النظرة للمستقبل)',
+        titleEn: 'Pessimism',
+        critical: true,
+        options: [
+          { score: 0, ar: 'لست متشائماً بخصوص المستقبل.', en: 'I am not particularly discouraged about the future.' },
+          { score: 1, ar: 'أشعر بالتشاؤم بخصوص المستقبل.', en: 'I feel discouraged about the future.' },
+          { score: 2, ar: 'أشعر أنه لا يوجد ما أتطلع إليه في المستقبل.', en: 'I feel I have nothing to look forward to.' },
+          { score: 3, ar: 'أشعر أن المستقبل ميئوس منه وأن الأمور لن تتحسن.', en: 'I feel the future is hopeless and that things cannot improve.' }
+        ]
+      },
+      {
+        id: 3,
+        domain: 'cognitive',
+        domainAr: 'البُعد المعرفي',
+        titleAr: 'الشعور بالفشل',
+        titleEn: 'Sense of Failure',
+        options: [
+          { score: 0, ar: 'لا أشعر بأنني شخص فاشل.', en: 'I do not feel like a failure.' },
+          { score: 1, ar: 'أشعر أنني فشلت أكثر من الشخص العادي.', en: 'I feel I have failed more than the average person.' },
+          { score: 2, ar: 'عندما أنظر إلى حياتي السابقة، كل ما أراه هو الكثير من الفشل.', en: 'As I look back on my life, all I can see is a lot of failures.' },
+          { score: 3, ar: 'أشعر أنني شخص فاشل تماماً.', en: 'I feel I am a complete failure as a person.' }
+        ]
+      },
+      {
+        id: 4,
+        domain: 'affective',
+        domainAr: 'البُعد الوجداني',
+        titleAr: 'فقدان الاستمتاع والرضا',
+        titleEn: 'Loss of Satisfaction (Anhedonia)',
+        options: [
+          { score: 0, ar: 'أحصل على نفس القدر من الرضا والاستمتاع بالأشياء كما تعودت.', en: 'I get as much satisfaction out of things as I used to.' },
+          { score: 1, ar: 'لا أستمتع بالأشياء بالطريقة التي تعودت عليها.', en: 'I don\'t enjoy things the way I used to.' },
+          { score: 2, ar: 'لم أعد أحصل على رضا حقيقي من أي شيء.', en: 'I don\'t get real satisfaction out of anything anymore.' },
+          { score: 3, ar: 'أشعر بعدم الرضا والملل من كل شيء.', en: 'I am dissatisfied or bored with everything.' }
+        ]
+      },
+      {
+        id: 5,
+        domain: 'cognitive',
+        domainAr: 'البُعد المعرفي',
+        titleAr: 'الشعور بالذنب',
+        titleEn: 'Guilty Feelings',
+        options: [
+          { score: 0, ar: 'لا أشعر بأي ذنب خاص.', en: 'I don\'t feel particularly guilty.' },
+          { score: 1, ar: 'أشعر بالذنب في كثير من الأحيان.', en: 'I feel guilty a good part of the time.' },
+          { score: 2, ar: 'أشعر بالذنب الشديد في معظم الأوقات.', en: 'I feel quite guilty most of the time.' },
+          { score: 3, ar: 'أشعر بالذنب طوال الوقت.', en: 'I feel guilty all of the time.' }
+        ]
+      },
+      {
+        id: 6,
+        domain: 'cognitive',
+        domainAr: 'البُعد المعرفي',
+        titleAr: 'توقع العقاب',
+        titleEn: 'Sense of Punishment',
+        options: [
+          { score: 0, ar: 'لا أشعر أنني أتعرض لعقاب.', en: 'I don\'t feel I am being punished.' },
+          { score: 1, ar: 'أشعر أنني قد أتعرض لعقاب.', en: 'I feel I may be punished.' },
+          { score: 2, ar: 'أتوقع أن أتعرض لعقاب.', en: 'I expect to be punished.' },
+          { score: 3, ar: 'أشعر أنني أتعرض لعقاب بالفعل.', en: 'I feel I am being punished.' }
+        ]
+      },
+      {
+        id: 7,
+        domain: 'cognitive',
+        domainAr: 'البُعد المعرفي',
+        titleAr: 'عدم الرضا عن الذات',
+        titleEn: 'Self-Dislike',
+        options: [
+          { score: 0, ar: 'لا أشعر بخيبة أمل في نفسي.', en: 'I don\'t feel disappointed in myself.' },
+          { score: 1, ar: 'أشعر بخيبة أمل في نفسي.', en: 'I am disappointed in myself.' },
+          { score: 2, ar: 'أشعر بالاشمئزاز من نفسي.', en: 'I am disgusted with myself.' },
+          { score: 3, ar: 'أكره نفسي.', en: 'I hate myself.' }
+        ]
+      },
+      {
+        id: 8,
+        domain: 'cognitive',
+        domainAr: 'البُعد المعرفي',
+        titleAr: 'لوم الذات وانتقادها',
+        titleEn: 'Self-Accusation',
+        options: [
+          { score: 0, ar: 'لا أشعر أنني أسوأ من أي شخص آخر.', en: 'I don\'t feel I am any worse than anybody else.' },
+          { score: 1, ar: 'أنتقد نفسي بسبب نقاط ضعفي أو أخطائي.', en: 'I am critical of myself for my weaknesses or mistakes.' },
+          { score: 2, ar: 'ألوم نفسي طوال الوقت على أخطائي.', en: 'I blame myself all the time for my faults.' },
+          { score: 3, ar: 'ألوم نفسي على كل شيء سيئ يحدث.', en: 'I blame myself for everything bad that happens.' }
+        ]
+      },
+      {
+        id: 9,
+        domain: 'cognitive',
+        domainAr: 'البُعد المعرفي',
+        titleAr: 'الأفكار الانتحارية',
+        titleEn: 'Suicidal Ideation',
+        critical: true,
+        options: [
+          { score: 0, ar: 'ليس لدي أي أفكار للتخلص من حياتي.', en: 'I don\'t have any thoughts of killing myself.' },
+          { score: 1, ar: 'لدي أفكار للتخلص من حياتي، ولكنني لن أنفذها.', en: 'I have thoughts of killing myself, but I would not carry them out.' },
+          { score: 2, ar: 'أرغب في أن أقتل نفسي.', en: 'I would like to kill myself.' },
+          { score: 3, ar: 'سأقتل نفسي لو سنحت لي الفرصة.', en: 'I would kill myself if I had the chance.' }
+        ]
+      },
+      {
+        id: 10,
+        domain: 'affective',
+        domainAr: 'البُعد الوجداني',
+        titleAr: 'نوبات البكاء',
+        titleEn: 'Crying Spells',
+        options: [
+          { score: 0, ar: 'لا أبكي أكثر من المعتاد.', en: 'I don\'t cry any more than usual.' },
+          { score: 1, ar: 'أبكي الآن أكثر مما تعودت عليه.', en: 'I cry more now than I used to.' },
+          { score: 2, ar: 'أبكي طوال الوقت الآن.', en: 'I cry all the time now.' },
+          { score: 3, ar: 'كنت قادراً على البكاء فيما مضى، ولكنني الآن لا أستطيع البكاء حتى لو أردت ذلك.', en: 'I used to be able to cry, but now I can\'t cry even though I want to.' }
+        ]
+      },
+      {
+        id: 11,
+        domain: 'affective',
+        domainAr: 'البُعد الوجداني',
+        titleAr: 'سرعة الاستثارة والانزعاج',
+        titleEn: 'Irritability',
+        options: [
+          { score: 0, ar: 'لست أكثر انزعاجاً أو استثارة الآن مما اعتدت عليه.', en: 'I am no more irritated by things than I ever was.' },
+          { score: 1, ar: 'أصبح من السهل استثارتي أو إزعاجي أكثر مما اعتدت.', en: 'I am slightly more irritated now than usual.' },
+          { score: 2, ar: 'أشعر بالانزعاج والاستثارة في معظم الأوقات.', en: 'I am quite annoyed or irritated a good deal of the time.' },
+          { score: 3, ar: 'أشعر بالانزعاج والاستثارة طوال الوقت.', en: 'I feel irritated all the time.' }
+        ]
+      },
+      {
+        id: 12,
+        domain: 'affective',
+        domainAr: 'البُعد الوجداني',
+        titleAr: 'الانسحاب الاجتماعي وفقدان الاهتمام بالآخرين',
+        titleEn: 'Social Withdrawal',
+        options: [
+          { score: 0, ar: 'لم أفقد اهتمامي بالآخرين.', en: 'I have not lost interest in other people.' },
+          { score: 1, ar: 'أصبحت أقل اهتماماً بالآخرين مما كنت عليه.', en: 'I am less interested in other people than I used to be.' },
+          { score: 2, ar: 'فقدت معظم اهتمامي بالآخرين.', en: 'I have lost most of my interest in other people.' },
+          { score: 3, ar: 'فقدت كل اهتمامي بالآخرين تماماً.', en: 'I have lost all of my interest in other people.' }
+        ]
+      },
+      {
+        id: 13,
+        domain: 'cognitive',
+        domainAr: 'البُعد المعرفي',
+        titleAr: 'التردد وصعوبة اتخاذ القرارات',
+        titleEn: 'Indecisiveness',
+        options: [
+          { score: 0, ar: 'أتخذ قراراتي بنفس الكفاءة التي تعودت عليها.', en: 'I make decisions about as well as I ever could.' },
+          { score: 1, ar: 'أؤجل اتخاذ القرارات أكثر مما تعودت عليه.', en: 'I put off making decisions more than I used to.' },
+          { score: 2, ar: 'أجد صعوبة أكبر في اتخاذ القرارات مما كان عليه الحال سابقاً.', en: 'I have greater difficulty in making decisions more than I used to.' },
+          { score: 3, ar: 'لم أعد قادراً على اتخاذ أي قرارات على الإطلاق.', en: 'I can\'t make decisions at all anymore.' }
+        ]
+      },
+      {
+        id: 14,
+        domain: 'cognitive',
+        domainAr: 'البُعد المعرفي',
+        titleAr: 'تغير صورة الجسم والمظهر',
+        titleEn: 'Body Image Distortion',
+        options: [
+          { score: 0, ar: 'لا أشعر أن مظهري أسوأ مما كان عليه.', en: 'I don\'t feel that I look any worse than I used to.' },
+          { score: 1, ar: 'أشعر بالقلق من أنني أبدو أكبر سناً أو أقل جاذبية.', en: 'I am worried that I am looking old or unattractive.' },
+          { score: 2, ar: 'أشعر أن هناك تغيرات دائمة في مظهري تجعلني أبدو غير جذاب.', en: 'I feel there are permanent changes in my appearance that make me look unattractive.' },
+          { score: 3, ar: 'أعتقد أن مظهري قبيح ومنفر.', en: 'I believe that I look ugly.' }
+        ]
+      },
+      {
+        id: 15,
+        domain: 'affective',
+        domainAr: 'البُعد الوجداني',
+        titleAr: 'تراجع القدرة على العمل والأداء',
+        titleEn: 'Work Inhibition',
+        options: [
+          { score: 0, ar: 'أستطيع العمل بنفس الكفاءة التي تعودت عليها.', en: 'I can work about as well as before.' },
+          { score: 1, ar: 'أحتاج إلى بذل جهد إضافي لكي أبدأ في عمل أي شيء.', en: 'It takes an extra effort to get started at doing something.' },
+          { score: 2, ar: 'أضطر لدفع نفسي بشدة لكي أقوم بأي عمل.', en: 'I have to push myself very hard to do anything.' },
+          { score: 3, ar: 'لا أستطيع القيام بأي عمل على الإطلاق.', en: 'I can\'t do any work at all.' }
+        ]
+      },
+      {
+        id: 16,
+        domain: 'somatic',
+        domainAr: 'البُعد البدني والجسمي',
+        titleAr: 'اضطرابات النوم والأرق',
+        titleEn: 'Sleep Disturbance (Insomnia)',
+        options: [
+          { score: 0, ar: 'أستطيع النوم جيداً كالمعتاد.', en: 'I can sleep as well as usual.' },
+          { score: 1, ar: 'لا أنام جيداً كما تعودت.', en: 'I don\'t sleep as well as I used to.' },
+          { score: 2, ar: 'أستيقظ مبكراً بساعة أو ساعتين عن المعتاد وأجد صعوبة في العودة للنوم.', en: 'I wake up 1-2 hours earlier than usual and find it hard to get back to sleep.' },
+          { score: 3, ar: 'أستيقظ مبكراً بعدة ساعات عن المعتاد ولا أستطيع العودة للنوم مرة أخرى.', en: 'I wake up several hours earlier than I used to and cannot get back to sleep.' }
+        ]
+      },
+      {
+        id: 17,
+        domain: 'somatic',
+        domainAr: 'البُعد البدني والجسمي',
+        titleAr: 'التعب والإرهاق البدني',
+        titleEn: 'Fatigability',
+        options: [
+          { score: 0, ar: 'لا أشعر بالتعب أكثر من المعتاد.', en: 'I don\'t get more tired than usual.' },
+          { score: 1, ar: 'أتعب بسهولة أكبر مما تعودت عليه.', en: 'I get tired more easily than I used to.' },
+          { score: 2, ar: 'أتعب من القيام بأي شيء تقريباً.', en: 'I get tired from doing almost anything.' },
+          { score: 3, ar: 'أشعر بالتعب الشديد لدرجة لا أستطيع معها عمل أي شيء.', en: 'I am too tired to do anything.' }
+        ]
+      },
+      {
+        id: 18,
+        domain: 'somatic',
+        domainAr: 'البُعد البدني والجسمي',
+        titleAr: 'فقدان الشهية للطعام',
+        titleEn: 'Loss of Appetite',
+        options: [
+          { score: 0, ar: 'شهيتي للطعام ليست أسوأ من المعتاد.', en: 'My appetite is no worse than usual.' },
+          { score: 1, ar: 'شهيتي للطعام ليست جيدة كما كانت.', en: 'My appetite is not as good as it used to be.' },
+          { score: 2, ar: 'شهيتي للطعام أسوأ بكثير الآن.', en: 'My appetite is much worse now.' },
+          { score: 3, ar: 'ليست لدي شهية للطعام على الإطلاق.', en: 'I have no appetite at all anymore.' }
+        ]
+      },
+      {
+        id: 19,
+        domain: 'somatic',
+        domainAr: 'البُعد البدني والجسمي',
+        titleAr: 'فقدان الوزن وتغيراته',
+        titleEn: 'Weight Loss',
+        options: [
+          { score: 0, ar: 'لم أفقد الكثير من وزني مؤخراً (أو وزني ثابت).', en: 'I haven\'t lost much weight, if any, lately.' },
+          { score: 1, ar: 'فقدت أكثر من كيلوجرامين (2 كجم) من وزني.', en: 'I have lost more than five pounds (2 kg).' },
+          { score: 2, ar: 'فقدت أكثر من أربعة كيلوجرامات (4 كجم) من وزني.', en: 'I have lost more than ten pounds (4 kg).' },
+          { score: 3, ar: 'فقدت أكثر من ستة كيلوجرامات (6 كجم) من وزني.', en: 'I have lost more than fifteen pounds (6 kg).' }
+        ]
+      },
+      {
+        id: 20,
+        domain: 'somatic',
+        domainAr: 'البُعد البدني والجسمي',
+        titleAr: 'الانشغال الصحي والقلق الجسدي',
+        titleEn: 'Somatic Preoccupation',
+        options: [
+          { score: 0, ar: 'لست قلقاً على صحتي أكثر من المعتاد.', en: 'I am no more worried about my health than usual.' },
+          { score: 1, ar: 'أشعر بالقلق بسبب مشكلات جسدية مثل الآلام أو اضطراب المعدة أو الإمساك.', en: 'I am worried about physical problems like aches, pains, upset stomach, or constipation.' },
+          { score: 2, ar: 'أشعر بقلق بالغ بشأن مشكلاتي الصحية ومن الصعب أن أفكر في أي شيء آخر.', en: 'I am very worried about physical problems and it\'s hard to think of much else.' },
+          { score: 3, ar: 'أشعر بقلق شديد للغاية على صحتي لدرجة لا أستطيع التفكير في أي شيء آخر.', en: 'I am so worried about my physical problems that I cannot think of anything else.' }
+        ]
+      },
+      {
+        id: 21,
+        domain: 'somatic',
+        domainAr: 'البُعد البدني والجسمي',
+        titleAr: 'فقدان الاهتمام الجنسي',
+        titleEn: 'Loss of Libido',
+        options: [
+          { score: 0, ar: 'لم ألاحظ أي تغير حديث في اهتمامي الجنسي.', en: 'I have not noticed any recent change in my interest in sex.' },
+          { score: 1, ar: 'أصبحت أقل اهتماماً بالجنس مما تعودت عليه.', en: 'I am less interested in sex than I used to be.' },
+          { score: 2, ar: 'أصبح اهتمامي بالجنس أقل بكثير الآن.', en: 'I have almost no interest in sex.' },
+          { score: 3, ar: 'فقدت اهتمامي بالجنس تماماً.', en: 'I have lost interest in sex completely.' }
+        ]
+      }
+    ];
+
+    // =========================================================================
+    // 2. APPLICATION STATE MANAGEMENT
+    // =========================================================================
+    const appState = {
+      currentStage: 1,
+      currentItemIndex: 0, // 0 to 20
+      examinee: {
+        name: '',
+        age: '',
+        gender: 'غير محدد / Not Specified',
+        testDate: '',
+        examiner: ''
+      },
+      // Store array of selected option indices per item (e.g., { 0: [1], 1: [1, 2] })
+      // Per clinical rules, recorded score for an item is Math.max(...selectedScores)
+      responses: {}
+    };
+
+    // Initialize today's date automatically
+    window.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().toISOString().split('T')[0];
+      const dateInput = document.getElementById('test-date');
+      if (dateInput) dateInput.value = today;
+      appState.examinee.testDate = today;
+      validateExamineeForm();
+    });
+
+    // =========================================================================
+    // 3. NAVIGATION & STAGE MANAGEMENT
+    // =========================================================================
+    function goToStage(stageNum) {
+      appState.currentStage = stageNum;
+
+      // Hide all stages
+      for (let i = 1; i <= 5; i++) {
+        const sec = document.getElementById(`stage-${i}`);
+        if (sec) sec.classList.add('hidden');
+
+        // Update top navbar step pills
+        const pill = document.getElementById(`nav-step-${i}`);
+        if (pill) {
+          if (i === stageNum) {
+            pill.className = 'px-3 py-1.5 rounded-full bg-emerald-700 text-white shadow-xs transition';
+          } else if (i < stageNum) {
+            pill.className = 'px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-900 transition';
+          } else {
+            pill.className = 'px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 transition';
+          }
+        }
+      }
+
+      // Show active stage
+      const activeSec = document.getElementById(`stage-${stageNum}`);
+      if (activeSec) {
+        activeSec.classList.remove('hidden');
+      }
+
+      if (stageNum === 3) {
+        renderCurrentItem();
+      } else if (stageNum === 4) {
+        renderStage4Summary();
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // =========================================================================
+    // 4. STAGE 2: EXAMINEE FORM VALIDATION & AGE CALCULATION
+    // =========================================================================
+    function calculateAgeFromDOB() {
+      const dobVal = document.getElementById('examinee-dob').value;
+      if (!dobVal) return;
+      const dob = new Date(dobVal);
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const monthDiff = today.getMonth() - dob.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+        age--;
+      }
+      if (age >= 10 && age <= 120) {
+        document.getElementById('examinee-age').value = age;
+        validateExamineeForm();
+      }
+    }
+
+    function validateExamineeForm() {
+      const name = document.getElementById('examinee-name').value.trim();
+      const age = document.getElementById('examinee-age').value.trim();
+      const date = document.getElementById('test-date').value.trim();
+      const btn = document.getElementById('start-test-btn');
+
+      if (name.length > 0 && age.length > 0 && Number(age) > 0 && date.length > 0) {
+        btn.disabled = false;
+      } else {
+        btn.disabled = true;
+      }
+    }
+
+    function handleExamineeSubmit(e) {
+      e.preventDefault();
+      appState.examinee = {
+        name: document.getElementById('examinee-name').value.trim(),
+        age: document.getElementById('examinee-age').value.trim(),
+        gender: document.getElementById('examinee-gender').value,
+        testDate: document.getElementById('test-date').value,
+        examiner: document.getElementById('examiner-name').value.trim() || 'عيادة القياس النفسي - كلية الآداب (جامعة المنوفية)'
+      };
+      appState.currentItemIndex = 0;
+      goToStage(3);
+    }
+
+    // =========================================================================
+    // 5. STAGE 3: INTERACTIVE 21 ITEMS & HIGHEST-SCORE CLINICAL RULE
+    // =========================================================================
+    function getItemRecordedScore(itemIndex) {
+      const selected = appState.responses[itemIndex];
+      if (!selected || selected.length === 0) return null;
+      return Math.max(...selected);
+    }
+
+    function renderItemDots() {
+      const grid = document.getElementById('item-dots-grid');
+      grid.innerHTML = '';
+
+      BDI_ITEMS.forEach((item, idx) => {
+        const isAnswered = appState.responses[idx] && appState.responses[idx].length > 0;
+        const isCurrent = idx === appState.currentItemIndex;
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = item.id;
+        btn.title = `البند ${item.id}: ${item.titleAr}`;
+        btn.onclick = () => {
+          appState.currentItemIndex = idx;
+          renderCurrentItem();
+        };
+
+        let classes = 'w-7 h-7 rounded-lg text-xs font-bold transition flex items-center justify-center ';
+        if (isCurrent) {
+          classes += 'bg-emerald-800 text-white ring-2 ring-emerald-400 scale-105';
+        } else if (isAnswered) {
+          classes += 'bg-emerald-100 text-emerald-900 border border-emerald-300 hover:bg-emerald-200';
+        } else {
+          classes += 'bg-slate-100 text-slate-500 hover:bg-slate-200';
+        }
+        btn.className = classes;
+        grid.appendChild(btn);
+      });
+    }
+
+    function renderCurrentItem() {
+      const idx = appState.currentItemIndex;
+      const item = BDI_ITEMS[idx];
+      const selectedArr = appState.responses[idx] || [];
+      const recordedScore = getItemRecordedScore(idx);
+
+      // Update Progress Header
+      const answeredCount = Object.keys(appState.responses).filter(k => appState.responses[k]?.length > 0).length;
+      const percent = Math.round((answeredCount / BDI_ITEMS.length) * 100);
+
+      document.getElementById('item-counter-badge').textContent = `البند ${item.id} من 21`;
+      document.getElementById('item-domain-badge').textContent = item.domainAr;
+      document.getElementById('progress-percent').textContent = `${percent}%`;
+      document.getElementById('answered-count').textContent = answeredCount;
+      document.getElementById('progress-bar-fill').style.width = `${Math.max(4.76, percent)}%`;
+
+      // Update Question Header
+      document.getElementById('q-number').textContent = item.id;
+      document.getElementById('q-title').innerHTML = `${item.titleAr} <span class="font-en text-sm sm:text-base font-semibold text-slate-400 mr-1">(${item.titleEn})</span>`;
+
+      // Show or hide Multi-Select Highest-Score Badge
+      const multiBadge = document.getElementById('multi-select-badge');
+      if (selectedArr.length > 1) {
+        multiBadge.classList.remove('hidden');
+        document.getElementById('recorded-score-span').textContent = recordedScore;
+      } else {
+        multiBadge.classList.add('hidden');
+      }
+
+      // Hide selection warning
+      document.getElementById('selection-warning').classList.add('hidden');
+
+      // Render 4 Options
+      const container = document.getElementById('options-container');
+      container.innerHTML = '';
+
+      item.options.forEach((opt) => {
+        const isSelected = selectedArr.includes(opt.score);
+        const isHighestApplied = isSelected && opt.score === recordedScore;
+
+        const card = document.createElement('div');
+        card.onclick = () => toggleOptionSelection(idx, opt.score);
+
+        let cardClass = 'cursor-pointer rounded-2xl p-4 sm:p-5 border-2 transition-all flex items-start gap-4 select-none ';
+        if (isHighestApplied) {
+          cardClass += 'border-emerald-700 bg-emerald-50/70 shadow-sm';
+        } else if (isSelected) {
+          cardClass += 'border-amber-400 bg-amber-50/40';
+        } else {
+          cardClass += 'border-slate-200 bg-white hover:border-emerald-300 hover:bg-slate-50/80';
+        }
+        card.className = cardClass;
+
+        card.innerHTML = `
+          <div class="w-8 h-8 rounded-xl shrink-0 flex items-center justify-center font-extrabold text-sm transition ${
+            isHighestApplied
+              ? 'bg-emerald-700 text-white'
+              : isSelected
+              ? 'bg-amber-500 text-white'
+              : 'bg-slate-100 text-slate-700'
+          }">
+            ${opt.score}
+          </div>
+          <div class="flex-1">
+            <p class="text-sm sm:text-base font-bold text-slate-900 leading-relaxed">${opt.ar}</p>
+            <p class="font-en text-xs text-slate-500 mt-1 text-left" dir="ltr">${opt.en}</p>
+          </div>
+          <div class="shrink-0 mt-1">
+            ${
+              isHighestApplied
+                ? '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-700 text-white text-[11px] font-bold"><i class="fa-solid fa-check"></i> معتمد</span>'
+                : isSelected
+                ? '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[11px] font-bold">محدد</span>'
+                : '<div class="w-5 h-5 rounded-full border-2 border-slate-300"></div>'
+            }
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      // Update Navigation Buttons
+      document.getElementById('prev-btn').disabled = idx === 0;
+      const nextBtnText = document.getElementById('next-btn-text');
+      const nextBtnIcon = document.getElementById('next-btn-icon');
+      if (idx === BDI_ITEMS.length - 1) {
+        nextBtnText.textContent = 'إنهاء ومعالجة الدرجات';
+        nextBtnIcon.className = 'fa-solid fa-chart-column';
+      } else {
+        nextBtnText.textContent = 'السؤال التالي';
+        nextBtnIcon.className = 'fa-solid fa-arrow-left';
+      }
+
+      renderItemDots();
+    }
+
+    function toggleOptionSelection(itemIndex, score) {
+      if (!appState.responses[itemIndex]) {
+        appState.responses[itemIndex] = [];
+      }
+
+      const arr = appState.responses[itemIndex];
+      const existingPos = arr.indexOf(score);
+
+      if (existingPos > -1) {
+        // Deselect if already selected
+        arr.splice(existingPos, 1);
+      } else {
+        // Add to selection (supports multi-select where highest score automatically applies!)
+        arr.push(score);
+      }
+
+      renderCurrentItem();
+    }
+
+    function prevItem() {
+      if (appState.currentItemIndex > 0) {
+        appState.currentItemIndex--;
+        renderCurrentItem();
+      }
+    }
+
+    function nextItem() {
+      const idx = appState.currentItemIndex;
+      const selected = appState.responses[idx];
+
+      if (!selected || selected.length === 0) {
+        document.getElementById('selection-warning').classList.remove('hidden');
+        return;
+      }
+
+      if (idx < BDI_ITEMS.length - 1) {
+        appState.currentItemIndex++;
+        renderCurrentItem();
+      } else {
+        // Verify all 21 items are answered before scoring
+        const firstUnanswered = BDI_ITEMS.findIndex((_, i) => !appState.responses[i] || appState.responses[i].length === 0);
+        if (firstUnanswered !== -1) {
+          appState.currentItemIndex = firstUnanswered;
+          renderCurrentItem();
+          document.getElementById('selection-warning').classList.remove('hidden');
+          return;
+        }
+        goToStage(4);
+      }
+    }
+
+    // =========================================================================
+    // 6. STAGE 4: SCORING ENGINE, SEVERITY CUTOFFS & CRITICAL ALERTS
+    // =========================================================================
+    function computeClinicalResults() {
+      let rawScore = 0;
+      let cogScore = 0; // max 27 (9 items)
+      let affScore = 0; // max 18 (6 items)
+      let somScore = 0; // max 18 (6 items)
+
+      const itemBreakdown = BDI_ITEMS.map((item, idx) => {
+        const score = getItemRecordedScore(idx) || 0;
+        rawScore += score;
+
+        if (item.domain === 'cognitive') cogScore += score;
+        else if (item.domain === 'affective') affScore += score;
+        else if (item.domain === 'somatic') somScore += score;
+
+        const chosenOpt = item.options.find(o => o.score === score) || item.options[0];
+        return {
+          ...item,
+          score,
+          chosenAr: chosenOpt.ar,
+          chosenEn: chosenOpt.en
+        };
+      });
+
+      // Exact Cutoffs Requested:
+      // 0 - 9: داخل المدى الأقل (في حده الأدنى)
+      // 10 - 16: اكتئاب معتدل
+      // 17 - 29: اكتئاب متوسط
+      // 30 - 63: اكتئاب شديد
+      let severity = {};
+      if (rawScore <= 9) {
+        severity = {
+          levelIndex: 0,
+          ar: 'داخل المدى الأقل (في حده الأدنى)',
+          en: 'Within Minimal Range (Minimal Depression)',
+          descAr: 'تشير الدرجة الكلية إلى خلو الحالة من الأعراض الاكتئابية الإكلينيكية الدالة، مع وجود استقرار انفعالي وتوافقي عام ضمن الحدود الطبيعية.',
+          cardClass: 'bg-emerald-50 border-emerald-500 text-emerald-950',
+          badgeClass: 'bg-emerald-100 text-emerald-900 border-emerald-400'
+        };
+      } else if (rawScore <= 16) {
+        severity = {
+          levelIndex: 1,
+          ar: 'اكتئاب معتدل',
+          en: 'Mild Depression',
+          descAr: 'تشير الدرجة الكلية إلى وجود أعراض اكتئابية خفيفة/معتدلة قد ترتبط بضغوط حياتية أو أكاديمية عابرة، وتستجيب بفعالية للإرشاد النفسي والدعم المعرفي.',
+          cardClass: 'bg-amber-50 border-amber-400 text-amber-950',
+          badgeClass: 'bg-amber-100 text-amber-900 border-amber-400'
+        };
+      } else if (rawScore <= 29) {
+        severity = {
+          levelIndex: 2,
+          ar: 'اكتئاب متوسط',
+          en: 'Moderate Depression',
+          descAr: 'تشير الدرجة الكلية إلى وجود مستوى متوسط من الأعراض الاكتئابية المؤثرة على الأداء الوظيفي والمزاجي، مما يستدعي خطة تدخل علاجي معرفي سلوكي (CBT) ومتابعة دورية.',
+          cardClass: 'bg-orange-50 border-orange-500 text-orange-950',
+          badgeClass: 'bg-orange-100 text-orange-900 border-orange-400'
+        };
+      } else {
+        severity = {
+          levelIndex: 3,
+          ar: 'اكتئاب شديد',
+          en: 'Severe Depression',
+          descAr: 'تشير الدرجة الكلية إلى ارتفاع حاد في شدة الأعراض الاكتئابية عبر الأبعاد المعرفية والوجدانية والبدنية، مما يتطلب تدخلاً إكلينيكياً متخصصاً وعاجلاً.',
+          cardClass: 'bg-rose-50 border-rose-600 text-rose-950',
+          badgeClass: 'bg-rose-100 text-rose-900 border-rose-500'
+        };
+      }
+
+      // Critical Clinical Alerts Check: Item 2 (Pessimism) & Item 9 (Suicidal Ideation)
+      const item2Score = itemBreakdown[1].score; // Index 1 -> Item 2
+      const item9Score = itemBreakdown[8].score; // Index 8 -> Item 9
+
+      const alerts = [];
+      if (item9Score > 0) {
+        alerts.push({
+          type: 'suicide',
+          severity: item9Score >= 2 ? 'critical' : 'warning',
+          titleAr: `تنبيه إكلينيكي حرج — البند رقم (9): الأفكار الانتحارية (الدرجة: ${item9Score} / 3)`,
+          bodyAr: 'أظهر المفحوص استجابة إيجابية في بند الأفكار الانتحارية. يجب على الفاحص إجراء مقابلة إكلينيكية فورية لتقييم درجة الخطورة الذاتية ووضع خطة أمان وحماية عاجلة.',
+          titleEn: `CRITICAL CLINICAL ALERT — Item (9): Suicidal Ideation (Score: ${item9Score} / 3)`,
+          bodyEn: 'Examinee endorsed suicidal ideation. Immediate clinical risk assessment for self-harm and safety planning are mandatory.'
+        });
+      }
+
+      if (item2Score > 0) {
+        alerts.push({
+          type: 'pessimism',
+          severity: item2Score >= 2 ? 'high' : 'moderate',
+          titleAr: `تنبيه إكلينيكي هام — البند رقم (2): التشاؤم واليأس (الدرجة: ${item2Score} / 3)`,
+          bodyAr: 'يُعد التشاؤم واليأس من المستقبل منبئاً إكلينيكياً هاماً بخطر الإقدام على إيذاء النفس أو الانتحار الفعلي (وفق أبحاث بيك). يُوصى بمتابعة هذا المؤشر بدقة.',
+          titleEn: `CLINICAL WARNING — Item (2): Pessimism & Hopelessness (Score: ${item2Score} / 3)`,
+          bodyEn: 'Elevated pessimism/hopelessness is a key empirical predictor of suicidal risk. Close clinical monitoring and cognitive restructuring are advised.'
+        });
+      }
+
+      return {
+        rawScore,
+        cogScore,
+        affScore,
+        somScore,
+        severity,
+        alerts,
+        itemBreakdown
+      };
+    }
+
+    function renderStage4Summary() {
+      const res = computeClinicalResults();
+
+      document.getElementById('s4-raw-score').textContent = res.rawScore;
+      const sevCard = document.getElementById('s4-severity-card');
+      sevCard.className = `md:col-span-2 rounded-2xl p-6 border-2 flex flex-col justify-center ${res.severity.cardClass}`;
+      document.getElementById('s4-severity-ar').textContent = res.severity.ar;
+      document.getElementById('s4-severity-en').textContent = res.severity.en;
+      document.getElementById('s4-severity-desc').textContent = res.severity.descAr;
+
+      // Highlight matching cutoff cell
+      for (let i = 0; i < 4; i++) {
+        const cell = document.getElementById(`cutoff-${i}`);
+        if (i === res.severity.levelIndex) {
+          cell.className = `p-3 rounded-xl border-2 font-bold shadow-xs ${res.severity.badgeClass}`;
+        } else {
+          cell.className = 'p-3 rounded-xl border border-slate-200 bg-white opacity-60';
+        }
+      }
+
+      // Domain bars
+      document.getElementById('s4-cog-score').textContent = `${res.cogScore} / 27`;
+      document.getElementById('s4-cog-bar').style.width = `${Math.round((res.cogScore / 27) * 100)}%`;
+
+      document.getElementById('s4-aff-score').textContent = `${res.affScore} / 18`;
+      document.getElementById('s4-aff-bar').style.width = `${Math.round((res.affScore / 18) * 100)}%`;
+
+      document.getElementById('s4-som-score').textContent = `${res.somScore} / 18`;
+      document.getElementById('s4-som-bar').style.width = `${Math.round((res.somScore / 18) * 100)}%`;
+
+      // Critical Alerts
+      const alertsBox = document.getElementById('stage4-alerts-container');
+      alertsBox.innerHTML = '';
+      res.alerts.forEach(al => {
+        const div = document.createElement('div');
+        div.className = 'p-4 rounded-2xl bg-rose-50 border-2 border-rose-500 text-rose-950 flex items-start gap-3 shadow-sm';
+        div.innerHTML = `
+          <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5">
+            <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+          </div>
+          <div>
+            <h4 class="font-extrabold text-sm sm:text-base text-rose-900">${al.titleAr}</h4>
+            <p class="text-xs sm:text-sm text-rose-800 mt-1 leading-relaxed">${al.bodyAr}</p>
+          </div>
+        `;
+        alertsBox.appendChild(div);
+      });
+    }
+
+    // =========================================================================
+    // 7. STAGE 5: BILINGUAL AI REPORT GENERATION & PRINT VIEW
+    // =========================================================================
+    function generateAndShowReport() {
+      const res = computeClinicalResults();
+
+      // Populate Header Metadata
+      document.getElementById('rep-name').textContent = appState.examinee.name;
+      document.getElementById('rep-age').textContent = `${appState.examinee.age} سنة (${appState.examinee.age} yrs)`;
+      document.getElementById('rep-gender').textContent = appState.examinee.gender;
+      document.getElementById('rep-date').textContent = appState.examinee.testDate;
+      document.getElementById('rep-examiner').textContent = appState.examinee.examiner;
+
+      // Populate Score Box
+      const scoreBox = document.getElementById('rep-score-box');
+      scoreBox.className = `md:col-span-5 rounded-2xl p-4 sm:p-5 border-2 flex flex-col justify-between ${res.severity.cardClass}`;
+      document.getElementById('rep-raw-score').textContent = res.rawScore;
+      document.getElementById('rep-severity-ar').textContent = res.severity.ar;
+      document.getElementById('rep-severity-en').textContent = res.severity.en;
+
+      // Populate Critical Alerts in Report
+      const repAlerts = document.getElementById('rep-critical-alerts');
+      repAlerts.innerHTML = '';
+      res.alerts.forEach(al => {
+        const card = document.createElement('div');
+        card.className = 'p-4 rounded-2xl bg-rose-50 border-2 border-rose-600 text-rose-950 grid grid-cols-1 md:grid-cols-2 gap-4';
+        card.innerHTML = `
+          <div class="text-right">
+            <div class="font-extrabold text-xs sm:text-sm text-rose-900 flex items-center gap-1.5 mb-1">
+              <i class="fa-solid fa-bell text-rose-600"></i>
+              <span>${al.titleAr}</span>
+            </div>
+            <p class="text-xs text-rose-800 leading-relaxed">${al.bodyAr}</p>
+          </div>
+          <div class="font-en text-left border-t md:border-t-0 md:border-r border-rose-200 pt-2 md:pt-0 md:pr-4" dir="ltr">
+            <div class="font-bold text-xs sm:text-sm text-rose-900 flex items-center gap-1.5 mb-1">
+              <i class="fa-solid fa-bell text-rose-600"></i>
+              <span>${al.titleEn}</span>
+            </div>
+            <p class="text-xs text-rose-800 leading-relaxed">${al.bodyEn}</p>
+          </div>
+        `;
+        repAlerts.appendChild(card);
+      });
+
+      // Domain Breakdown Bars
+      const cogPct = Math.round((res.cogScore / 27) * 100);
+      const affPct = Math.round((res.affScore / 18) * 100);
+      const somPct = Math.round((res.somScore / 18) * 100);
+
+      document.getElementById('rep-cog-val').textContent = `${res.cogScore} / 27 (${cogPct}%)`;
+      document.getElementById('rep-cog-bar').style.width = `${cogPct}%`;
+
+      document.getElementById('rep-aff-val').textContent = `${res.affScore} / 18 (${affPct}%)`;
+      document.getElementById('rep-aff-bar').style.width = `${affPct}%`;
+
+      document.getElementById('rep-som-val').textContent = `${res.somScore} / 18 (${somPct}%)`;
+      document.getElementById('rep-som-bar').style.width = `${somPct}%`;
+
+      // Generate Rich Bilingual Clinical Narrative
+      const narrative = buildBilingualClinicalNarrative(res);
+      document.getElementById('ai-ar-pattern').textContent = narrative.ar.pattern;
+      document.getElementById('ai-ar-strengths').textContent = narrative.ar.strengths;
+      document.getElementById('ai-ar-deficits').textContent = narrative.ar.deficits;
+      document.getElementById('ai-ar-diagnosis').textContent = narrative.ar.diagnosis;
+
+      document.getElementById('ai-en-pattern').textContent = narrative.en.pattern;
+      document.getElementById('ai-en-strengths').textContent = narrative.en.strengths;
+      document.getElementById('ai-en-deficits').textContent = narrative.en.deficits;
+      document.getElementById('ai-en-diagnosis').textContent = narrative.en.diagnosis;
+
+      // Populate 21-Item Bilingual Breakdown Table
+      const tbody = document.getElementById('rep-items-tbody');
+      tbody.innerHTML = '';
+
+      res.itemBreakdown.forEach(item => {
+        const tr = document.createElement('tr');
+        const isHigh = item.score >= 2;
+        const isCriticalAlert = (item.id === 2 || item.id === 9) && item.score > 0;
+
+        if (isCriticalAlert) {
+          tr.className = 'bg-rose-50/80';
+        } else if (isHigh) {
+          tr.className = 'bg-amber-50/40';
+        }
+
+        tr.innerHTML = `
+          <td class="py-2 px-3 text-center font-bold text-slate-700">${item.id}</td>
+          <td class="py-2 px-3">
+            <div class="font-bold text-slate-900">${item.titleAr}</div>
+            <div class="font-en text-[11px] text-slate-500">${item.titleEn} • ${item.domainAr}</div>
+          </td>
+          <td class="py-2 px-3 text-slate-800 font-medium">${item.chosenAr}</td>
+          <td class="py-2 px-3 font-en text-slate-700 text-left" dir="ltr">${item.chosenEn}</td>
+          <td class="py-2 px-3 text-center">
+            <span class="inline-block w-7 h-7 leading-7 rounded-lg font-extrabold text-xs ${
+              item.score === 0
+                ? 'bg-emerald-100 text-emerald-800'
+                : item.score === 1
+                ? 'bg-amber-100 text-amber-800'
+                : 'bg-rose-100 text-rose-800'
+            }">
+              ${item.score}
+            </span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      goToStage(5);
+    }
+
+    function buildBilingualClinicalNarrative(res) {
+      const zeroItems = res.itemBreakdown.filter(i => i.score === 0);
+      const mildItems = res.itemBreakdown.filter(i => i.score === 1);
+      const highItems = res.itemBreakdown.filter(i => i.score >= 2);
+
+      // Identify dominant domain
+      const cogRatio = res.cogScore / 27;
+      const affRatio = res.affScore / 18;
+      const somRatio = res.somScore / 18;
+
+      let dominantAr = 'توازن نسبي بين الأبعاد المعرفية والوجدانية والبدنية';
+      let dominantEn = 'a relatively balanced distribution across cognitive, affective, and somatic dimensions';
+
+      if (cogRatio > affRatio && cogRatio > somRatio && res.cogScore > 0) {
+        dominantAr = 'غلبة الأعراض المعرفية (التشوهات المعرفية، نقد الذات، والتشاؤم)';
+        dominantEn = 'a predominance of cognitive symptoms (negative self-schema, self-criticism, and pessimism)';
+      } else if (affRatio > cogRatio && affRatio > somRatio && res.affScore > 0) {
+        dominantAr = 'غلبة الأعراض الوجدانية والمزاجية (الحزن، فقدان الاستمتاع، والانسحاب)';
+        dominantEn = 'a predominance of affective symptoms (dysphoric mood, anhedonia, and social withdrawal)';
+      } else if (somRatio > cogRatio && somRatio > affRatio && res.somScore > 0) {
+        dominantAr = 'غلبة الأعراض البدنية والجسمية (اضطرابات النوم، الإرهاق، وتغيرات الشهية والوزن)';
+        dominantEn = 'a predominance of somatic and vegetative symptoms (sleep disturbance, fatigue, and appetite/weight changes)';
+      }
+
+      // Strengths list (top 5 zero-scored items)
+      const strengthsListAr = zeroItems.length > 0
+        ? zeroItems.slice(0, 6).map(i => i.titleAr).join('، ')
+        : 'لا توجد بنود خالية تماماً من الأعراض، مما يشير إلى شمولية التأثر الحالي.';
+      const strengthsListEn = zeroItems.length > 0
+        ? zeroItems.slice(0, 6).map(i => i.titleEn).join(', ')
+        : 'No completely symptom-free domains were recorded, reflecting pervasive distress.';
+
+      // High symptoms list
+      const deficitsListAr = highItems.length > 0
+        ? highItems.map(i => `${i.titleAr} (درجة ${i.score})`).join('، ')
+        : mildItems.length > 0
+        ? `تقتصر الأعراض على شدة خفيفة في: ${mildItems.slice(0, 4).map(i => i.titleAr).join('، ')}`
+        : 'لا توجد أعراض مرتفعة الشدة (درجة 2 أو 3) في استجابات المفحوص.';
+
+      const deficitsListEn = highItems.length > 0
+        ? highItems.map(i => `${i.titleEn} (Score: ${i.score})`).join(', ')
+        : mildItems.length > 0
+        ? `Symptoms are restricted to mild elevations in: ${mildItems.slice(0, 4).map(i => i.titleEn).join(', ')}`
+        : 'No elevated symptoms (scores of 2 or 3) were endorsed.';
+
+      // Safety & Diagnosis Synthesis
+      let safetyNoteAr = '';
+      let safetyNoteEn = '';
+      if (res.alerts.length > 0) {
+        safetyNoteAr = ' تنبيه أمان إكلينيكي عاجل: تم رصد استجابات موجبة في بنود الخطورة (التشاؤم و/أو الأفكار الانتحارية)، مما يستوجب تقييماً مباشراً للسلامة الذاتية وتفعيل بروتوكول التدخل الوقائي فوراً.';
+        safetyNoteEn = ' URGENT SAFETY ALERT: Positive endorsements were detected on critical risk indicators (Pessimism and/or Suicidal Ideation), mandating immediate self-harm risk evaluation and protective safety planning.';
+      }
+
+      let recAr = '';
+      let recEn = '';
+      if (res.rawScore <= 9) {
+        recAr = 'تقع الدرجة الكلية في المدى الأقل (0–9)، مما يعكس توافقاً نفسياً جيداً. يُوصى بتعزيز المهارات الوقائية والحفاظ على نمط الحياة الصحي.';
+        recEn = 'The total raw score falls within the minimal range (0–9), reflecting adaptive psychological functioning. Preventive wellness and maintenance of healthy routines are recommended.';
+      } else if (res.rawScore <= 16) {
+        recAr = 'تقع الدرجة الكلية ضمن مستوى الاكتئاب المعتدل (10–16). يُوصى بجلسات إرشاد نفسي داعم وتدريب على مهارات إدارة الضغوط وإعادة البناء المعرفي.';
+        recEn = 'The total raw score falls within the mild depression range (10–16). Supportive psychological counseling, stress-management training, and cognitive reframing are recommended.';
+      } else if (res.rawScore <= 29) {
+        recAr = 'تقع الدرجة الكلية ضمن مستوى الاكتئاب المتوسط (17–29). يُوصى ببدء برنامج علاج معرفي سلوكي (CBT) منظم تحت إشراف أخصائي إكلينيكي مع إعادة التقييم بعد 4 أسابيع.';
+        recEn = 'The total raw score indicates moderate depression (17–29). Structured Cognitive Behavioral Therapy (CBT) under clinical supervision with a 4-week follow-up reassessment is strongly advised.';
+      } else {
+        recAr = 'تقع الدرجة الكلية ضمن مستوى الاكتئاب الشديد (30–63). يستدعي الموقف إحالة إكلينيكية عاجلة لتقييم طبي ونفسي متكامل ووضع خطة علاجية مكثفة.';
+        recEn = 'The total raw score indicates severe depression (30–63). Urgent clinical referral for comprehensive psychiatric and psychological evaluation with an intensive treatment plan is warranted.';
+      }
+
+      return {
+        ar: {
+          pattern: `حصل المفحوص (${appState.examinee.name}) على درجة خام كلية قدرها (${res.rawScore} من 63) بنسبة شدة (${Math.round((res.rawScore / 63) * 100)}%). يُظهر البروفيل الإكلينيكي ${dominantAr}؛ حيث بلغت درجة البُعد المعرفي (${res.cogScore}/27)، والبُعد الوجداني (${res.affScore}/18)، والبُعد البدني والجسمي (${res.somScore}/18).`,
+          strengths: `أظهر المفحوص استقراراً نفسياً نسبياً وموارد تكيفية إيجابية في (${zeroItems.length}) بنداً حصل فيها على تقدير (0)، ومن أبرزها: ${strengthsListAr}. يمكن استثمار هذه الجوانب كنقاط ارتكاز في العملية الإرشادية والعلاجية.`,
+          deficits: `تتركز الأعراض البارزة ومناطق القصور التي تتطلب تركيزاً علاجياً في (${highItems.length}) بنداً مرتفع الشدة: ${deficitsListAr}.`,
+          diagnosis: `التصنيف التشخيصي وفق معايير قائمة "بيك": (${res.severity.ar}). ${recAr}${safetyNoteAr}`
+        },
+        en: {
+          pattern: `Examinee (${appState.examinee.name}) obtained a total raw score of (${res.rawScore} / 63), representing (${Math.round((res.rawScore / 63) * 100)}%) overall symptom severity. The clinical profile demonstrates ${dominantEn}, with sub-scores of (${res.cogScore}/27) Cognitive, (${res.affScore}/18) Affective, and (${res.somScore}/18) Somatic/Vegetative.`,
+          strengths: `The examinee demonstrated relative psychological stability and preserved coping resources across (${zeroItems.length}) items scored at (0), notably: ${strengthsListEn}. These intact domains serve as foundational assets for therapeutic intervention.`,
+          deficits: `Prominent clinical symptoms and areas requiring targeted support are concentrated in (${highItems.length}) elevated items: ${deficitsListEn}.`,
+          diagnosis: `Diagnostic Classification per BDI Cutoffs: (${res.severity.en}). ${recEn}${safetyNoteEn}`
+        }
+      };
+    }
+
+    function setReportViewMode(mode) {
+      const colAr = document.getElementById('report-col-ar');
+      const colEn = document.getElementById('report-col-en');
+      const grid = document.getElementById('bilingual-analysis-grid');
+
+      const btnBoth = document.getElementById('lang-mode-both');
+      const btnAr = document.getElementById('lang-mode-ar');
+      const btnEn = document.getElementById('lang-mode-en');
+
+      [btnBoth, btnAr, btnEn].forEach(b => {
+        b.className = 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition';
+      });
+
+      if (mode === 'both') {
+        btnBoth.className = 'px-3 py-1.5 rounded-lg bg-white text-emerald-800 shadow-sm transition';
+        colAr.classList.remove('hidden');
+        colEn.classList.remove('hidden');
+        grid.className = 'grid grid-cols-1 lg:grid-cols-2 gap-5';
+      } else if (mode === 'ar') {
+        btnAr.className = 'px-3 py-1.5 rounded-lg bg-white text-emerald-800 shadow-sm transition';
+        colAr.classList.remove('hidden');
+        colEn.classList.add('hidden');
+        grid.className = 'grid grid-cols-1 gap-5';
+      } else {
+        btnEn.className = 'px-3 py-1.5 rounded-lg bg-white text-emerald-800 shadow-sm transition font-en';
+        colAr.classList.add('hidden');
+        colEn.classList.remove('hidden');
+        grid.className = 'grid grid-cols-1 gap-5';
+      }
+    }
+
+    function resetFullAssessment() {
+      appState.responses = {};
+      appState.currentItemIndex = 0;
+      document.getElementById('examinee-name').value = '';
+      document.getElementById('examinee-age').value = '';
+      document.getElementById('examinee-dob').value = '';
+      validateExamineeForm();
+      goToStage(1);
+    }
+
+    // =========================================================================
+    // 8. DEMO SCENARIO SIMULATOR (FOR EXAMINERS / REVIEWERS)
+    // =========================================================================
+    function openDemoModal() {
+      document.getElementById('demo-modal').classList.remove('hidden');
+    }
+
+    function closeDemoModal() {
+      document.getElementById('demo-modal').classList.add('hidden');
+    }
+
+    function applyDemoScenario(level) {
+      closeDemoModal();
+      const today = new Date().toISOString().split('T')[0];
+
+      if (level === 'minimal') {
+        appState.examinee = {
+          name: 'حالة تجريبية (CASE-01)',
+          age: '21',
+          gender: 'أنثى / Female',
+          testDate: today,
+          examiner: 'د. باحث إكلينيكي - قسم علم النفس (جامعة المنوفية)'
+        };
+        // Score = 5
+        const sample = [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0];
+        sample.forEach((s, idx) => { appState.responses[idx] = [s]; });
+      } else if (level === 'moderate') {
+        appState.examinee = {
+          name: 'حالة تجريبية (CASE-02)',
+          age: '24',
+          gender: 'ذكر / Male',
+          testDate: today,
+          examiner: 'د. باحث إكلينيكي - قسم علم النفس (جامعة المنوفية)'
+        };
+        // Score = 22, Item 2 (index 1) = 2 (triggers pessimism alert)
+        const sample = [1, 2, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 2, 0, 2, 2, 2, 1, 0, 1, 1];
+        sample.forEach((s, idx) => { appState.responses[idx] = [s]; });
+      } else {
+        appState.examinee = {
+          name: 'حالة تجريبية (CASE-03)',
+          age: '27',
+          gender: 'ذكر / Male',
+          testDate: today,
+          examiner: 'د. باحث إكلينيكي - قسم علم النفس (جامعة المنوفية)'
+        };
+        // Score = 38, Item 2 = 3, Item 9 = 2 (triggers both critical clinical alerts)
+        const sample = [2, 3, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 1, 1];
+        sample.forEach((s, idx) => { appState.responses[idx] = [s]; });
+      }
+
+      // Sync form fields as well
+      document.getElementById('examinee-name').value = appState.examinee.name;
+      document.getElementById('examinee-age').value = appState.examinee.age;
+      document.getElementById('examinee-gender').value = appState.examinee.gender;
+      document.getElementById('test-date').value = appState.examinee.testDate;
+      document.getElementById('examiner-name').value = appState.examinee.examiner;
+      validateExamineeForm();
+
+      goToStage(4);
+    }
+  </script>
+</body>
+</html>
