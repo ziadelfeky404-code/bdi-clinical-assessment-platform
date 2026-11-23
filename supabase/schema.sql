@@ -303,9 +303,13 @@ begin
     );
   end loop;
 
-  select coalesce(max((o->>'score')::integer), 0) into v_max
-  from public.assessment_items i, jsonb_array_elements(i.options) o
-  where i.assessment_id = v_assessment.id;
+  select coalesce(sum(item_max), 0) into v_max
+  from (
+    select max((o->>'score')::integer) as item_max
+    from public.assessment_items i, jsonb_array_elements(i.options) o
+    where i.assessment_id = v_assessment.id
+    group by i.id
+  ) as per_item;
 
   select c into v_cutoff
   from jsonb_array_elements(v_assessment.cutoffs) c
