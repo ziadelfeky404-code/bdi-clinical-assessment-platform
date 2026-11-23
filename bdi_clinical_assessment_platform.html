@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>قائمة بيك للاكتئاب (BDI) | جامعة المنوفية</title>
+  <title>منصة التقييم الإكلينيكي | جامعة المنوفية</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts: Cairo & Tajawal for Arabic, Inter for English -->
@@ -140,27 +140,28 @@
       <div class="flex items-center gap-3">
         <img src="image_4f89bd.jpg" alt="شعار جامعة المنوفية" class="w-10 h-10 object-contain rounded-lg border border-slate-100 p-0.5 bg-white" onerror="this.src='https://placehold.co/80x80/146C43/FFFFFF?text=MU'">
         <div>
-          <h1 class="text-sm sm:text-base font-bold text-slate-800 leading-tight">قائمة "بيك" للاكتئاب (BDI)</h1>
+          <h1 class="text-sm sm:text-base font-bold text-slate-800 leading-tight">منصة التقييم الإكلينيكي</h1>
           <p class="text-[11px] sm:text-xs text-slate-500">جامعة المنوفية • منصة التقييم الإكلينيكي والتربوي</p>
         </div>
       </div>
 
       <!-- Step Indicator Pills -->
       <nav aria-label="مراحل التطبيق" class="hidden md:flex items-center gap-1.5 text-xs font-semibold">
-        <span id="nav-step-1" class="px-3 py-1.5 rounded-full bg-emerald-700 text-white transition">1. الغلاف</span>
+        <span id="nav-step-1" class="px-3 py-1.5 rounded-full bg-emerald-700 text-white transition">1. البداية</span>
         <i class="fa-solid fa-chevron-left text-slate-300 text-[10px]"></i>
-        <span id="nav-step-2" class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 transition">2. بيانات المفحوص</span>
+        <span id="nav-step-2" class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 transition">2. البيانات</span>
         <i class="fa-solid fa-chevron-left text-slate-300 text-[10px]"></i>
-        <span id="nav-step-3" class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 transition">3. بنود المقياس (21)</span>
-        <i class="fa-solid fa-chevron-left text-slate-300 text-[10px]"></i>
-        <span id="nav-step-4" class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 transition">4. المعالجة والتصنيف</span>
-        <i class="fa-solid fa-chevron-left text-slate-300 text-[10px]"></i>
-        <span id="nav-step-5" class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 transition">5. التقرير ثنائي اللغة</span>
+        <span id="nav-step-3" class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 transition">3. البنود (21)</span>
+        <i class="fa-solid fa-chevron-left text-slate-300 text-[10px] specialist-only hidden"></i>
+        <span id="nav-step-4" class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 transition specialist-only hidden">4. المعالجة والتصنيف</span>
+        <i class="fa-solid fa-chevron-left text-slate-300 text-[10px] specialist-only hidden"></i>
+        <span id="nav-step-5" class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 transition specialist-only hidden">5. التقرير ثنائي اللغة</span>
+        <span id="specialist-badge" class="hidden px-3 py-1.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 transition">وضع المتخصص</span>
       </nav>
 
       <!-- Demo Fill Helper for Examiners/Testing -->
       <div class="flex items-center gap-2">
-        <button id="demo-fill-btn" onclick="openDemoModal()" title="تعبئة تجريبية سريعة للمحكمين والباحثين" class="text-xs font-semibold px-3 py-1.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 transition flex items-center gap-1.5">
+        <button id="demo-fill-btn" onclick="openDemoModal()" title="تعبئة تجريبية سريعة للمحكمين والباحثين" class="specialist-only hidden text-xs font-semibold px-3 py-1.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 transition flex items-center gap-1.5">
           <i class="fa-solid fa-wand-magic-sparkles"></i>
           <span class="hidden sm:inline">معاينة تجريبية</span>
         </button>
@@ -222,18 +223,18 @@
           <div class="text-center max-w-3xl mx-auto mb-8">
             <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm font-bold mb-4">
               <i class="fa-solid fa-brain"></i>
-              <span>أداة التقييم الإكلينيكي والقياسي للاكتئاب</span>
+              <span>أداة التقييم الإكلينيكي والقياسي المتكاملة</span>
             </div>
 
             <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 mb-3 tracking-tight">
-              قائمة "بيك" للاكتئاب
+              أداة التقييم الإكلينيكي
             </h1>
             <p class="font-en text-lg sm:text-2xl font-bold text-emerald-800 mb-6">
-              Beck Depression Inventory (BDI)
+              Clinical Assessment Inventory
             </p>
 
             <!-- Authors & Translator Box -->
-            <div class="bg-gradient-to-br from-slate-50 to-emerald-50/40 border border-slate-200 rounded-2xl p-5 sm:p-6 text-right sm:text-center shadow-inner mb-6">
+            <div class="specialist-only hidden bg-gradient-to-br from-slate-50 to-emerald-50/40 border border-slate-200 rounded-2xl p-5 sm:p-6 text-right sm:text-center shadow-inner mb-6">
               <p class="text-sm sm:text-base text-slate-700 leading-relaxed mb-2">
                 <span class="font-bold text-slate-900"><i class="fa-solid fa-feather-pointed text-emerald-700 ml-1.5"></i>المؤلفون الأصليون:</span>
                 أعده أصلاً <span class="font-bold text-emerald-900">آرون بيك (Aaron T. Beck)</span> و<span class="font-bold text-emerald-900">روبرت ستير (Robert A. Steer)</span> عام (1971).
@@ -299,7 +300,7 @@
           <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3 text-sm text-amber-900">
             <i class="fa-solid fa-lock text-amber-600 mt-1"></i>
             <p>
-              <strong>ملاحظة الخصوصية والسرية:</strong> يمكن إدخال الاسم الكامل للمفحوص أو استخدام <strong>كود تعريفي (مثل: CASE-2026-01)</strong> للحفاظ على السرية الطبية والتشخيصية.
+              <strong>ملاحظة الخصوصية والسرية:</strong> يمكن إدخال الاسم الكامل للمفحوص أو استخدام <strong>كود تعريفي (مثل: CASE-2026-01)</strong> للحفاظ على خصوصيتك وسرية بياناتك.
             </p>
           </div>
 
@@ -377,7 +378,7 @@
 
             <div>
               <label for="test-date" class="block text-sm font-bold text-slate-800 mb-2">
-                تاريخ تطبيق الاختبار (تلقائي من النظام) <span class="text-rose-600">*</span>
+                تاريخ الجلسة (تلقائي من النظام) <span class="text-rose-600">*</span>
               </label>
               <div class="relative">
                 <input
@@ -981,6 +982,34 @@
 
   </main>
 
+  <!-- ===================================================================== -->
+  <!-- STAGE 6: NEUTRAL COMPLETION SCREEN (no scores, no results, no labels)  -->
+  <!-- ===================================================================== -->
+  <section id="stage-6" class="hidden fade-in">
+    <div class="max-w-xl mx-auto bg-white rounded-3xl shadow-lg border border-slate-200 p-8 sm:p-12 text-center">
+      <div class="w-16 h-16 mx-auto mb-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center">
+        <i class="fa-solid fa-check text-2xl text-emerald-700"></i>
+      </div>
+      <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mb-3">تم تسجيل استجاباتك بنجاح</h2>
+      <p class="text-sm sm:text-base text-slate-600 leading-relaxed mb-7">
+        شكراً لوقتك وتعاونك. يمكنك إغلاق هذه الصفحة بأمان.
+      </p>
+      <button type="button" onclick="window.close()" class="px-6 py-3 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 font-bold text-sm transition">
+        إنهاء
+      </button>
+    </div>
+  </section>
+
+  <!-- Global footer (visible to the patient) with a discreet specialist access icon -->
+  <footer class="no-print w-full max-w-6xl mx-auto px-4 pb-6 mt-auto">
+    <div class="flex items-center justify-center gap-2 text-[10px] text-slate-400">
+      <span>جامعة المنوفية — منصة التقييم الإكلينيكي</span>
+      <button id="specialist-lock-btn" type="button" onclick="openSpecialistGate()" aria-label="" title="" class="w-5 h-5 rounded-full flex items-center justify-center text-slate-300 hover:text-emerald-700 hover:bg-slate-100 transition">
+        <i class="fa-solid fa-lock text-[9px]"></i>
+      </button>
+    </div>
+  </footer>
+
   <!-- Demo Fill Modal for Examiners / Evaluators -->
   <div id="demo-modal" class="no-print hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 fade-in">
@@ -1009,6 +1038,29 @@
           <div class="font-bold text-rose-900 text-sm">3. حالة اكتئاب شديد (30 – 63) + تنبيهات حرجة</div>
           <div class="text-xs text-rose-700">درجة مرتفعة (38 / 63) مع تفعيل تنبيهات البند (2) والبند (9).</div>
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Specialist access dialog (no labels visible until the lock icon is used) -->
+  <div id="specialist-gate-modal" class="no-print hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-xs w-full p-6 shadow-2xl border border-slate-200 fade-in">
+      <div class="flex items-center justify-center w-11 h-11 mx-auto mb-4 rounded-full bg-slate-100 text-slate-600">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <input
+        id="specialist-pin-input"
+        type="password"
+        inputmode="numeric"
+        autocomplete="off"
+        placeholder="••••"
+        onkeydown="if(event.key==='Enter')submitSpecialistGate()"
+        class="w-full text-center text-lg tracking-[0.5em] py-3 rounded-xl border border-slate-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 outline-none transition text-slate-900"
+      />
+      <p id="specialist-pin-error" class="hidden text-center text-xs text-rose-600 font-bold mt-3"></p>
+      <div class="mt-5 flex items-center justify-center gap-2">
+        <button type="button" onclick="closeSpecialistGate()" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-100 font-bold text-sm transition">إلغاء</button>
+        <button type="button" onclick="submitSpecialistGate()" class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm transition">دخول</button>
       </div>
     </div>
   </div>
@@ -1299,8 +1351,12 @@
     // =========================================================================
     // 2. APPLICATION STATE MANAGEMENT
     // =========================================================================
+    // Specialist access code — change this value to set your own PIN.
+    const SPECIALIST_PIN = '2026';
+
     const appState = {
       currentStage: 1,
+      isSpecialist: false,
       currentItemIndex: 0, // 0 to 20
       examinee: {
         name: '',
@@ -1328,23 +1384,30 @@
     // =========================================================================
     function goToStage(stageNum) {
       cancelAutoAdvance();
+      // Results and report are strictly specialist-only.
+      if ((stageNum === 4 || stageNum === 5) && !appState.isSpecialist) {
+        stageNum = 6;
+      }
       appState.currentStage = stageNum;
 
       // Hide all stages
-      for (let i = 1; i <= 5; i++) {
+      for (let i = 1; i <= 6; i++) {
         const sec = document.getElementById(`stage-${i}`);
         if (sec) sec.classList.add('hidden');
 
-        // Update top navbar step pills
+        // Update top navbar step pills (keep specialist-only steps hidden for patients)
         const pill = document.getElementById(`nav-step-${i}`);
         if (pill) {
-          if (i === stageNum) {
-            pill.className = 'px-3 py-1.5 rounded-full bg-emerald-700 text-white shadow-xs transition';
-          } else if (i < stageNum) {
-            pill.className = 'px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-900 transition';
-          } else {
-            pill.className = 'px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 transition';
-          }
+          const base = 'px-3 py-1.5 rounded-full transition';
+          const state = i === stageNum
+            ? 'bg-emerald-700 text-white shadow-xs'
+            : i < stageNum
+              ? 'bg-emerald-100 text-emerald-900'
+              : 'bg-slate-100 text-slate-500';
+          const specialistCls = (i === 4 || i === 5)
+            ? ' specialist-only' + (appState.isSpecialist ? '' : ' hidden')
+            : '';
+          pill.className = base + ' ' + state + specialistCls;
         }
       }
 
@@ -1622,7 +1685,7 @@
           document.getElementById('selection-warning').classList.remove('hidden');
           return;
         }
-        goToStage(4);
+        goToStage(appState.isSpecialist ? 4 : 6);
       }
     }
 
@@ -1787,6 +1850,7 @@
     // 7. STAGE 5: BILINGUAL AI REPORT GENERATION & PRINT VIEW
     // =========================================================================
     function generateAndShowReport() {
+      if (!appState.isSpecialist) return;
       const res = computeClinicalResults();
 
       // Populate Header Metadata
@@ -2025,6 +2089,7 @@
     // 8. DEMO SCENARIO SIMULATOR (FOR EXAMINERS / REVIEWERS)
     // =========================================================================
     function openDemoModal() {
+      if (!appState.isSpecialist) return;
       document.getElementById('demo-modal').classList.remove('hidden');
     }
 
@@ -2080,6 +2145,38 @@
       validateExamineeForm();
 
       goToStage(4);
+    }
+
+    // =========================================================================
+    // 9. SPECIALIST ACCESS GATE (discreet lock icon in the footer)
+    // =========================================================================
+    function openSpecialistGate() {
+      document.getElementById('specialist-pin-input').value = '';
+      document.getElementById('specialist-pin-error').classList.add('hidden');
+      document.getElementById('specialist-gate-modal').classList.remove('hidden');
+      document.getElementById('specialist-pin-input').focus();
+    }
+
+    function closeSpecialistGate() {
+      document.getElementById('specialist-gate-modal').classList.add('hidden');
+    }
+
+    function submitSpecialistGate() {
+      const entered = document.getElementById('specialist-pin-input').value.trim();
+      if (entered !== SPECIALIST_PIN) {
+        const err = document.getElementById('specialist-pin-error');
+        err.textContent = 'كلمة المرور غير صحيحة';
+        err.classList.remove('hidden');
+        return;
+      }
+
+      closeSpecialistGate();
+      appState.isSpecialist = true;
+      document.querySelectorAll('.specialist-only').forEach(el => el.classList.remove('hidden'));
+      document.getElementById('specialist-badge').classList.remove('hidden');
+
+      // If the patient flow had already finished, jump straight to the results view.
+      goToStage(appState.currentStage === 6 ? 4 : appState.currentStage);
     }
   </script>
 </body>
