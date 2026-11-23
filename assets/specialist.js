@@ -25,7 +25,9 @@ const SETTING_FIELDS = [
 ];
 
 const TONE_BY_KEY = {
-  minimal: 'tone-emerald', mild: 'tone-amber', moderate: 'tone-orange', severe: 'tone-rose'
+  minimal: 'tone-emerald', mild: 'tone-amber', moderate: 'tone-orange', severe: 'tone-rose',
+  low: 'tone-emerald', high: 'tone-rose',
+  balanced: 'tone-emerald', developing: 'tone-amber', strained: 'tone-rose'
 };
 
 function showLogin() {
@@ -196,12 +198,78 @@ function renderReports() {
   });
 }
 
+function shortLabel(text, max = 64) {
+  const value = String(text || '').trim();
+  return value.length > max ? `${value.slice(0, max)}…` : value;
+}
+
+function buildClinicalNarrative(report) {
+  const items = report.snapshot?.items || [];
+  const alerts = report.alerts || [];
+  const critical = alerts.filter(a => a.severity === 'critical');
+  const key = report.severity_key;
+
+  const meaning = {
+    minimal: 'لا توجد مؤشرات ذات دلالة سريرية على اضطراب في الحالة النفسية ضمن استجابات هذه الأداة.',
+    mild: 'مؤشرات خفيفة على ضغط في الحالة النفسية، تُقرأ ضمن السياق الإكلينيكي العام.',
+    moderate: 'مؤشرات متوسطة تستدعي تقييماً إكلينيكياً موسعاً ومناقشتها مع المفحوص.',
+    severe: 'مؤشرات شديدة تتطلب تدخلاً إكلينيكياً متخصصاً ومتابعة قريبة.',
+    low: 'مستوى الضغط ضمن المعدل المعتاد.',
+    high: 'مستوى ضغط مرتفع يستدعي تدخلاً إكلينيكياً.',
+    balanced: 'نمط تكيف متوازن ومرن مع الضغوط.',
+    developing: 'بعض مهارات التكيف تحتاج إلى تنمية وتدعيم.',
+    strained: 'نمط تكيف مرهق يستدعي دعماً إكلينيكياً.'
+  };
+
+  let diagnosis = `التصنيف المبدئي وفق الأداة: ${report.severity_ar} (الدرجة ${report.raw_score} من ${report.max_score}).`;
+  if (meaning[key]) diagnosis += ` ${meaning[key]}`;
+  if (critical.length) {
+    diagnosis += ' توجد مؤشرات حرجة مرتبطة ببعض البنود؛ يلزم تقييم مباشر لمخاطر الإيذاء النفس قبل أي استنتاج نهائي.';
+  } else if (alerts.length) {
+    diagnosis += ' توجد مؤشرات إضافية تحتاج متابعة إكلينيكية مختصرة.';
+  }
+
+  const alertPositions = new Set(alerts.map(a => Number(a.position)).filter(n => Number.isFinite(n)));
+  const highItems = items.filter(i => Number(i.score) >= 2).sort((a, b) => Number(b.score) - Number(a.score));
+  const lowItems = items.filter(i => Number(i.score) <= 1 && !alertPositions.has(Number(i.position)));
+  const labelOf = i => shortLabel(i.textAr || i.textEn || 'بند بدون نص');
+
+  const strengths = lowItems.length
+    ? lowItems.slice(0, 3).map(i => `استجابة منخفضة على البند (${i.position}): ${labelOf(i)}`)
+    : ['لم تبرز بنود منخفضة بوضوح؛ وتُقرأ النتيجة في ضوء التصنيف العام.'];
+
+  const weaknesses = highItems.length
+    ? highItems.slice(0, 3).map(i => `استجابة مرتفعة على البند (${i.position}): ${labelOf(i)}`)
+    : ['لا توجد بنود مرتفعة بشكل لافت ضمن هذه الاستجابات.'];
+
+  const recommendations = [];
+  if (critical.length) {
+    recommendations.push('تقييم مباشر وعاجل لمخاطر الإيذاء النفس، وتفعيل خطة سلامة تحت إشراف المتخصص، مع إحالة لطبيب نفسي عند اللزوم.');
+  }
+  if (key === 'severe' || key === 'high' || key === 'strained') {
+    recommendations.push('إحالة إلى أخصائي نفسي أو طبيب نفسي لوضع خطة علاج متكاملة ومتابعة قريبة الأجل.');
+  } else if (key === 'moderate' || key === 'developing') {
+    recommendations.push('جلسات متابعة منتظمة مع إعادة تقييم بالأداة نفسها بعد 4 أسابيع تقريباً.');
+  } else if (key === 'mild') {
+    recommendations.push('متابعة دورية وتعزيز استراتيجيات التأقلم والدعم الاجتماعي.');
+  } else {
+    recommendations.push('مناقشة النتيجة مع المفحوص في جلسة إكلينيكية، وإعادة التقييم عند تغير الحالة.');
+  }
+  if (alerts.length && !critical.length) {
+    recommendations.push('مراجعة البنود التي أثارت التنبيهات في الجلسة القادمة وتوثيق التغير.');
+  }
+  recommendations.push('تُعد هذه الصياغة مساعدة قرار آلية مبنية على الاستجابات، ولا تُغني عن الحكم الإكلينيكي المتخصص.');
+
+  return { diagnosis, strengths, weaknesses, recommendations };
+}
+
 function openReport(id) {
   const r = state.reports.find(x => x.id === id);
   if (!r) return;
   const snap = r.snapshot || {};
   const alerts = r.alerts || [];
   const items = snap.items || [];
+  const narrative = buildClinicalNarrative(r);
 
   document.getElementById('report-modal-body').innerHTML = `
     <div class="border-b border-slate-200 pb-5 mb-5">
@@ -226,6 +294,11 @@ function openReport(id) {
       </div>
     </div>
 
+    <div class="avoid-break mb-6 rounded-xl border-2 p-5 ${TONE_BY_KEY[r.severity_key] || 'tone-slate'}">
+      <h3 class="font-extrabold mb-2 flex items-center gap-2 text-sm"><i class="fa-solid fa-stethoscope"></i> التشخيص المبدئي</h3>
+      <p class="text-xs leading-relaxed font-semibold">${escapeHtml(narrative.diagnosis)}</p>
+    </div>
+
     ${alerts.length ? `
       <div class="mb-6">
         <h3 class="font-extrabold text-rose-800 mb-3 flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation"></i> التنبيهات الإكلينيكية</h3>
@@ -238,6 +311,28 @@ function openReport(id) {
             </div>`).join('')}
         </div>
       </div>` : ''}
+
+    <div class="grid sm:grid-cols-2 gap-4 mb-6 avoid-break">
+      <div class="rounded-xl border border-emerald-200 bg-emerald-50/60 p-5">
+        <h3 class="font-extrabold text-emerald-900 mb-3 text-sm flex items-center gap-2"><i class="fa-solid fa-circle-check"></i> نقاط القوة</h3>
+        <ul class="space-y-2">
+          ${narrative.strengths.map(s => `<li class="text-xs leading-relaxed text-slate-700 flex gap-2"><i class="fa-solid fa-check text-emerald-700 mt-0.5"></i><span>${escapeHtml(s)}</span></li>`).join('')}
+        </ul>
+      </div>
+      <div class="rounded-xl border border-amber-200 bg-amber-50/60 p-5">
+        <h3 class="font-extrabold text-amber-900 mb-3 text-sm flex items-center gap-2"><i class="fa-solid fa-circle-exclamation"></i> نقاط الضعف</h3>
+        <ul class="space-y-2">
+          ${narrative.weaknesses.map(s => `<li class="text-xs leading-relaxed text-slate-700 flex gap-2"><i class="fa-solid fa-minus text-amber-700 mt-0.5"></i><span>${escapeHtml(s)}</span></li>`).join('')}
+        </ul>
+      </div>
+    </div>
+
+    <div class="avoid-break mb-6 rounded-xl border border-slate-200 bg-slate-50 p-5">
+      <h3 class="font-extrabold text-slate-900 mb-3 text-sm flex items-center gap-2"><i class="fa-solid fa-list-check text-emerald-700"></i> التوصيات</h3>
+      <ol class="space-y-2 list-decimal list-inside">
+        ${narrative.recommendations.map(s => `<li class="text-xs leading-relaxed text-slate-700">${escapeHtml(s)}</li>`).join('')}
+      </ol>
+    </div>
 
     <div class="avoid-break">
       <h3 class="font-extrabold text-slate-900 mb-3">تفصيل البنود</h3>
