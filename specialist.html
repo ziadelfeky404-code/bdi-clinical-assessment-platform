@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>لوحة المتخصص | جامعة المنوفية</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body class="min-h-screen bg-slate-50">
+
+  <header class="no-print bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <a href="index.html" class="flex items-center gap-3">
+        <img src="image_4f89bd.jpg" alt="جامعة المنوفية" class="w-9 h-9 object-contain rounded-lg border border-slate-100 bg-white p-0.5">
+        <div>
+          <h1 class="text-sm font-extrabold text-slate-800 leading-tight">لوحة المتخصص</h1>
+          <p class="text-[11px] text-slate-500">جامعة المنوفية — منصة التقييم الإكلينيكي</p>
+        </div>
+      </a>
+      <div id="header-actions" class="hidden items-center gap-3">
+        <span id="user-label" class="text-xs font-bold text-slate-600"></span>
+        <button id="logout-btn" class="btn-ghost !py-1.5 !px-3 text-xs">خروج</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- LOGIN -->
+  <section id="login-view" class="min-h-[calc(100vh-64px)] flex items-center justify-center px-4 py-12">
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-xl border border-slate-200 p-7 sm:p-9 fade-in">
+      <div class="w-14 h-14 mx-auto mb-5 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-xl">
+        <i class="fa-solid fa-user-shield"></i>
+      </div>
+      <h2 class="text-xl font-extrabold text-center text-slate-900 mb-2">دخول المتخصص</h2>
+      <p class="text-xs text-center text-slate-500 mb-7">هذه الصفحة مخصصة للفاحصين والمتخصصين فقط.</p>
+
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="field-label" for="login-email">البريد الإلكتروني</label>
+          <input id="login-email" type="email" class="field" autocomplete="username" required placeholder="name@example.com" />
+        </div>
+        <div>
+          <label class="field-label" for="login-password">كلمة المرور</label>
+          <input id="login-password" type="password" class="field" autocomplete="current-password" required placeholder="••••••••" />
+        </div>
+        <p id="login-error" class="hidden text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2"></p>
+        <button type="submit" class="btn-primary w-full">دخول</button>
+      </form>
+      <p class="text-[11px] text-slate-400 text-center mt-6">
+        <i class="fa-solid fa-lock ml-1"></i> الوصول مقيد بحساب متخصص مفعل
+      </p>
+    </div>
+  </section>
+
+  <!-- APP -->
+  <div id="app-view" class="hidden max-w-7xl mx-auto px-4 py-7 grid lg:grid-cols-[230px_1fr] gap-6">
+
+    <aside class="no-print">
+      <nav class="bg-white rounded-2xl border border-slate-200 p-2 sticky top-20 space-y-1">
+        <button data-tab="dashboard" class="nav-link active w-full text-right rounded-xl px-3.5 py-2.5 text-sm font-bold flex items-center gap-2.5">
+          <i class="fa-solid fa-gauge-high w-5 text-center"></i> نظرة عامة
+        </button>
+        <button data-tab="reports" class="nav-link w-full text-right rounded-xl px-3.5 py-2.5 text-sm font-bold flex items-center gap-2.5">
+          <i class="fa-solid fa-folder-open w-5 text-center"></i> أرشيف التقارير
+        </button>
+        <button data-tab="assessments" class="nav-link w-full text-right rounded-xl px-3.5 py-2.5 text-sm font-bold flex items-center gap-2.5">
+          <i class="fa-solid fa-flask w-5 text-center"></i> الاختبارات
+        </button>
+        <button data-tab="settings" class="nav-link w-full text-right rounded-xl px-3.5 py-2.5 text-sm font-bold flex items-center gap-2.5">
+          <i class="fa-solid fa-sliders w-5 text-center"></i> إعدادات الموقع
+        </button>
+        <button data-tab="team" class="nav-link w-full text-right rounded-xl px-3.5 py-2.5 text-sm font-bold flex items-center gap-2.5">
+          <i class="fa-solid fa-users-gear w-5 text-center"></i> المتخصصون
+        </button>
+      </nav>
+    </aside>
+
+    <main>
+      <!-- Dashboard -->
+      <section id="tab-dashboard" class="space-y-6 fade-in">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white rounded-2xl border border-slate-200 p-5">
+            <p class="text-xs text-slate-500 font-bold">إجمالي الجلسات</p>
+            <p id="stat-sessions" class="text-3xl font-extrabold text-slate-900 mt-2">0</p>
+          </div>
+          <div class="bg-white rounded-2xl border border-slate-200 p-5">
+            <p class="text-xs text-slate-500 font-bold">التقارير</p>
+            <p id="stat-reports" class="text-3xl font-extrabold text-emerald-700 mt-2">0</p>
+          </div>
+          <div class="bg-white rounded-2xl border border-slate-200 p-5">
+            <p class="text-xs text-slate-500 font-bold">تنبيهات حرجة</p>
+            <p id="stat-alerts" class="text-3xl font-extrabold text-rose-700 mt-2">0</p>
+          </div>
+          <div class="bg-white rounded-2xl border border-slate-200 p-5">
+            <p class="text-xs text-slate-500 font-bold">اختبارات نشطة</p>
+            <p id="stat-tests" class="text-3xl font-extrabold text-amber-600 mt-2">0</p>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 p-6">
+          <div class="flex items-center justify-between mb-5">
+            <h3 class="font-extrabold text-slate-900">أحدث التقارير</h3>
+            <button data-tab="reports" class="text-xs font-bold text-emerald-700">عرض الكل <i class="fa-solid fa-arrow-left"></i></button>
+          </div>
+          <div id="recent-reports" class="overflow-x-auto"></div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-rose-200 p-6">
+          <h3 class="font-extrabold text-rose-800 mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-triangle-exclamation"></i> تنبيهات تحتاج متابعة
+          </h3>
+          <div id="dashboard-alerts" class="space-y-3"></div>
+        </div>
+      </section>
+
+      <!-- Reports -->
+      <section id="tab-reports" class="hidden fade-in">
+        <div class="bg-white rounded-2xl border border-slate-200 p-6">
+          <div class="flex flex-wrap items-center gap-3 mb-5">
+            <h3 class="font-extrabold text-slate-900 ml-auto">أرشيف التقارير</h3>
+            <input id="report-search" class="field !w-auto flex-1 min-w-[180px]" placeholder="ابحث بالاسم أو رقم الجلسة" />
+            <select id="report-filter" class="field !w-auto min-w-[160px]">
+              <option value="all">كل الاختبارات</option>
+            </select>
+          </div>
+          <div id="reports-table" class="overflow-x-auto"></div>
+        </div>
+      </section>
+
+      <!-- Assessments -->
+      <section id="tab-assessments" class="hidden fade-in">
+        <div class="bg-white rounded-2xl border border-slate-200 p-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+            <div>
+              <h3 class="font-extrabold text-slate-900">مكتبة الاختبارات</h3>
+              <p class="text-xs text-slate-500 mt-1">عدّل البنود، الخيارات، حدود التصنيف، والتنبيهات من مكان واحد.</p>
+            </div>
+            <button id="add-assessment-btn" class="btn-primary flex items-center gap-2"><i class="fa-solid fa-plus"></i> اختبار جديد</button>
+          </div>
+          <div id="assessments-list" class="grid md:grid-cols-2 gap-4"></div>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section id="tab-settings" class="hidden fade-in">
+        <div class="bg-white rounded-2xl border border-slate-200 p-6">
+          <h3 class="font-extrabold text-slate-900 mb-1">إعدادات الموقع</h3>
+          <p class="text-xs text-slate-500 mb-6">النصوص التي يراها المريض في الصفحة الرئيسية وصفحة الجلسة.</p>
+          <div id="settings-form" class="grid sm:grid-cols-2 gap-5"></div>
+          <div class="mt-7 pt-5 border-t border-slate-100 flex justify-end">
+            <button id="save-settings-btn" class="btn-primary"><i class="fa-solid fa-floppy-disk ml-1"></i> حفظ التغييرات</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Team -->
+      <section id="tab-team" class="hidden fade-in space-y-6">
+        <div class="bg-white rounded-2xl border border-slate-200 p-6">
+          <h3 class="font-extrabold text-slate-900 mb-1">حسابات المتخصصين</h3>
+          <p class="text-xs text-slate-500 mb-5">يمكن لمدير النظام إضافة متخصصين جدد وتحديد صلاحياتهم.</p>
+          <div id="team-list" class="overflow-x-auto"></div>
+        </div>
+        <div id="add-team-card" class="hidden bg-white rounded-2xl border border-slate-200 p-6">
+          <h4 class="font-extrabold text-slate-900 mb-4">إضافة متخصص</h4>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div><label class="field-label" for="new-team-name">الاسم</label><input id="new-team-name" class="field" /></div>
+            <div><label class="field-label" for="new-team-email">البريد الإلكتروني</label><input id="new-team-email" type="email" class="field" /></div>
+            <div><label class="field-label" for="new-team-password">كلمة المرور</label><input id="new-team-password" type="password" class="field" /></div>
+            <div>
+              <label class="field-label" for="new-team-role">الصلاحية</label>
+              <select id="new-team-role" class="field"><option value="specialist">متخصص</option><option value="admin">مدير نظام</option></select>
+            </div>
+          </div>
+          <div class="mt-5 flex justify-end gap-2">
+            <button id="cancel-team-btn" class="btn-ghost">إلغاء</button>
+            <button id="save-team-btn" class="btn-primary">إنشاء الحساب</button>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-6">
+          <h4 class="font-extrabold text-slate-900 mb-4">تغيير كلمة المرور</h4>
+          <div class="grid sm:grid-cols-2 gap-4 max-w-xl">
+            <div><label class="field-label" for="new-password">كلمة المرور الجديدة</label><input id="new-password" type="password" class="field" /></div>
+            <div class="flex items-end"><button id="change-password-btn" class="btn-primary w-full">تحديث</button></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- REPORT MODAL -->
+  <div id="report-modal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-start justify-center p-3 sm:p-6 overflow-y-auto">
+    <div class="print-full bg-white rounded-2xl w-full max-w-4xl my-2 shadow-2xl">
+      <div class="no-print flex items-center justify-between p-4 border-b border-slate-200">
+        <h3 class="font-extrabold text-slate-900">تفاصيل التقرير</h3>
+        <div class="flex items-center gap-2">
+          <button id="print-report-btn" class="btn-ghost !py-1.5 !px-3"><i class="fa-solid fa-print ml-1"></i> طباعة</button>
+          <button id="close-report-btn" class="btn-ghost !py-1.5 !px-3"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+      <div id="report-modal-body" class="p-6"></div>
+    </div>
+  </div>
+
+  <!-- ASSESSMENT EDITOR MODAL -->
+  <div id="assessment-modal" class="no-print hidden fixed inset-0 z-50 modal-backdrop flex items-start justify-center p-3 sm:p-6 overflow-y-auto">
+    <div class="bg-white rounded-2xl w-full max-w-3xl my-2 shadow-2xl">
+      <div class="flex items-center justify-between p-4 border-b border-slate-200">
+        <h3 id="assessment-modal-title" class="font-extrabold text-slate-900">اختبار جديد</h3>
+        <button id="close-assessment-btn" class="btn-ghost !py-1.5 !px-3"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="p-6 space-y-5">
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div><label class="field-label">المعرّف (slug)</label><input id="a-slug" class="field" placeholder="bdi-ii" /></div>
+          <div><label class="field-label">الإصدار</label><input id="a-version" class="field" value="1.0" /></div>
+          <div><label class="field-label">العنوان (للمتخصص)</label><input id="a-title-ar" class="field" /></div>
+          <div><label class="field-label">Title (English)</label><input id="a-title-en" class="field" /></div>
+          <div><label class="field-label">العنوان المعروض للمريض</label><input id="a-patient-ar" class="field" placeholder="أداة التقييم الإكلينيكي" /></div>
+          <div><label class="field-label">Patient-facing title</label><input id="a-patient-en" class="field" /></div>
+          <div><label class="field-label">القسم</label><select id="a-category" class="field"><option value="clinical">إكلينيكي</option><option value="educational">تربوي</option><option value="personality">شخصية</option></select></div>
+          <div><label class="field-label">ترتيب العرض</label><input id="a-sort" type="number" class="field" value="10" /></div>
+        </div>
+        <div><label class="field-label">وصف الاختبار</label><textarea id="a-desc-ar" class="field" rows="2"></textarea></div>
+        <div><label class="field-label">تعليمات المريض</label><textarea id="a-instructions-ar" class="field" rows="2"></textarea></div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div><label class="field-label">حدود التصنيف (JSON)</label><textarea id="a-cutoffs" class="field font-en" rows="7" dir="ltr"></textarea></div>
+          <div><label class="field-label">قواعد التنبيهات (JSON)</label><textarea id="a-rules" class="field font-en" rows="7" dir="ltr"></textarea></div>
+        </div>
+        <label class="flex items-center gap-2 text-sm font-bold text-slate-700">
+          <input id="a-active" type="checkbox" class="w-4 h-4 accent-emerald-700" checked> مفعّل وظاهر للمريض
+        </label>
+
+        <div class="border-t border-slate-200 pt-5">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="font-extrabold text-slate-900">البنود</h4>
+            <button id="add-item-btn" type="button" class="btn-ghost !py-1.5 !px-3"><i class="fa-solid fa-plus ml-1"></i> بند جديد</button>
+          </div>
+          <div id="items-editor" class="space-y-3"></div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-4 border-t border-slate-200">
+          <button id="cancel-assessment-btn" class="btn-ghost">إلغاء</button>
+          <button id="save-assessment-btn" class="btn-primary"><i class="fa-solid fa-floppy-disk ml-1"></i> حفظ الاختبار</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="assets/specialist.js"></script>
+</body>
+</html>
