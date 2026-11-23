@@ -441,10 +441,7 @@
             <div>
               <h3 class="font-bold text-sm sm:text-base text-amber-300 mb-1">تعليمات تطبيق المقياس:</h3>
               <p class="text-xs sm:text-sm text-emerald-50 leading-relaxed">
-                اقرأ كل مجموعة من الجمل بعناية، ثم اختر الجملة التي تصف حالتك النفسية وشعورك السائد <strong>خلال السبعة أيام الماضية بما فيها اليوم</strong> (بتقدير من 0 إلى 3).
-                <span class="inline-block bg-white/15 text-amber-200 px-2 py-0.5 rounded-md text-xs mt-1">
-                  قاعدة التطبيق الإكلينيكي: في حال اختيار أكثر من عبارة في البند الواحد، يقوم النظام تلقائياً باعتماد وتسجيل <strong>التقدير الأعلى</strong>.
-                </span>
+                اقرأ كل مجموعة من الجمل بعناية، ثم اختر الجملة التي تصف حالتك النفسية وشعورك السائد <strong>خلال السبعة أيام الماضية بما فيها اليوم</strong>.
               </p>
             </div>
           </div>
@@ -456,9 +453,6 @@
             <div class="flex items-center gap-2">
               <span id="item-counter-badge" class="px-3.5 py-1 rounded-full bg-emerald-100 text-emerald-900 font-extrabold text-sm">
                 البند 1 من 21
-              </span>
-              <span id="item-domain-badge" class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 font-semibold text-xs">
-                المجال الوجداني
               </span>
             </div>
             <div class="text-xs sm:text-sm font-bold text-slate-600">
@@ -487,11 +481,6 @@
               <h2 id="q-title" class="hidden text-xl sm:text-2xl font-extrabold text-slate-900"></h2>
             </div>
 
-            <!-- Multi-select Clinical Rule Indicator -->
-            <div id="multi-select-badge" class="hidden px-3.5 py-1.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold flex items-center gap-2">
-              <i class="fa-solid fa-scale-balanced text-amber-600"></i>
-              <span>تم تحديد أكثر من عبارة — تم اعتماد التقدير الأعلى تلقائياً (<span id="recorded-score-span">0</span>)</span>
-            </div>
           </div>
 
           <!-- 4 Options Container -->
@@ -521,16 +510,6 @@
             >
               <i class="fa-solid fa-arrow-right"></i>
               <span>السؤال السابق</span>
-            </button>
-
-            <button
-              type="button"
-              id="next-btn"
-              onclick="nextItem()"
-              class="px-7 py-3.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm sm:text-base shadow-md transition flex items-center gap-2"
-            >
-              <span id="next-btn-text">السؤال التالي</span>
-              <i id="next-btn-icon" class="fa-solid fa-arrow-left"></i>
             </button>
           </div>
         </div>
@@ -1522,7 +1501,6 @@
       const percent = Math.round((answeredCount / BDI_ITEMS.length) * 100);
 
       document.getElementById('item-counter-badge').textContent = `البند ${item.id} من 21`;
-      document.getElementById('item-domain-badge').textContent = item.domainAr;
       document.getElementById('progress-percent').textContent = `${percent}%`;
       document.getElementById('answered-count').textContent = answeredCount;
       document.getElementById('progress-bar-fill').style.width = `${Math.max(4.76, percent)}%`;
@@ -1530,15 +1508,6 @@
       // Update Question Header (title intentionally hidden from the respondent)
       document.getElementById('q-number').textContent = item.id;
       document.getElementById('q-title').textContent = '';
-
-      // Show or hide Multi-Select Highest-Score Badge
-      const multiBadge = document.getElementById('multi-select-badge');
-      if (selectedArr.length > 1) {
-        multiBadge.classList.remove('hidden');
-        document.getElementById('recorded-score-span').textContent = recordedScore;
-      } else {
-        multiBadge.classList.add('hidden');
-      }
 
       // Hide selection warning
       document.getElementById('selection-warning').classList.add('hidden');
@@ -1565,15 +1534,6 @@
         card.className = cardClass;
 
         card.innerHTML = `
-          <div class="w-8 h-8 rounded-xl shrink-0 flex items-center justify-center font-extrabold text-sm transition ${
-            isHighestApplied
-              ? 'bg-emerald-700 text-white'
-              : isSelected
-              ? 'bg-amber-500 text-white'
-              : 'bg-slate-100 text-slate-700'
-          }">
-            ${opt.score}
-          </div>
           <div class="flex-1">
             <p class="text-sm sm:text-base font-bold text-slate-900 leading-relaxed">${opt.ar}</p>
             <p class="font-en text-xs text-slate-500 mt-1 text-left" dir="ltr">${opt.en}</p>
@@ -1593,15 +1553,6 @@
 
       // Update Navigation Buttons
       document.getElementById('prev-btn').disabled = idx === 0;
-      const nextBtnText = document.getElementById('next-btn-text');
-      const nextBtnIcon = document.getElementById('next-btn-icon');
-      if (idx === BDI_ITEMS.length - 1) {
-        nextBtnText.textContent = 'إنهاء ومعالجة الدرجات';
-        nextBtnIcon.className = 'fa-solid fa-chart-column';
-      } else {
-        nextBtnText.textContent = 'السؤال التالي';
-        nextBtnIcon.className = 'fa-solid fa-arrow-left';
-      }
 
       renderItemDots();
     }
@@ -1634,21 +1585,19 @@
       }
 
       const arr = appState.responses[itemIndex];
-      const wasAnswered = arr.length > 0;
       const existingPos = arr.indexOf(score);
 
       if (existingPos > -1) {
         // Deselect if already selected
         arr.splice(existingPos, 1);
       } else {
-        // Add to selection (supports multi-select where highest score automatically applies!)
         arr.push(score);
       }
 
       renderCurrentItem();
 
-      // First-time answer -> auto-advance. Editing an existing answer -> remain on this item.
-      if (!wasAnswered && arr.length > 0) {
+      // Any selection moves straight to the next item (editing included).
+      if (arr.length > 0) {
         scheduleAutoAdvance(itemIndex);
       } else {
         cancelAutoAdvance();
