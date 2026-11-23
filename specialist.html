@@ -187,7 +187,7 @@
           <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
             <div>
               <h3 class="font-extrabold text-slate-900 mb-1">حسابات المتخصصين</h3>
-              <p class="text-xs text-slate-500">يمكن لمدير النظام إضافة متخصصين وتعديل صلاحياتهم وحالتهم.</p>
+              <p class="text-xs text-slate-500">يمكن لمدير النظام إضافة متخصصين وتعديل صلاحياتهم وحالتهم أو حذفهم.</p>
             </div>
             <button id="show-team-btn" class="hidden btn-primary !py-2 !px-3 text-xs flex items-center gap-2"><i class="fa-solid fa-plus"></i> إضافة متخصص</button>
           </div>
@@ -286,7 +286,8 @@
           <div><label class="field-label">Title (English)</label><input id="a-title-en" class="field" /></div>
           <div><label class="field-label">العنوان المعروض للمريض</label><input id="a-patient-ar" class="field" placeholder="أداة التقييم الإكلينيكي" /></div>
           <div><label class="field-label">Patient-facing title</label><input id="a-patient-en" class="field" /></div>
-          <div><label class="field-label">القسم</label><select id="a-category" class="field"><option value="clinical">إكلينيكي</option><option value="educational">تربوي</option><option value="personality">شخصية</option></select></div>
+          <div><label class="field-label">الحقيبة</label><select id="a-suite" class="field"><option value="clinical">الحقيبة الإكلينيكية</option><option value="special">حقيبة الفئات الخاصة</option></select></div>
+          <div><label class="field-label">القسم (داخلي)</label><select id="a-category" class="field"><option value="clinical">إكلينيكي</option><option value="educational">تربوي</option><option value="personality">شخصية</option></select></div>
           <div><label class="field-label">ترتيب العرض</label><input id="a-sort" type="number" class="field" value="10" /></div>
         </div>
         <div><label class="field-label">وصف الاختبار</label><textarea id="a-desc-ar" class="field" rows="2"></textarea></div>

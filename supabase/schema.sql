@@ -30,6 +30,7 @@ create table if not exists public.assessments (
   patient_label_ar text not null default '',
   patient_label_en text not null default '',
   category text not null default 'clinical',
+  suite text not null default 'clinical' check (suite in ('clinical', 'special')),
   description_ar text not null default '',
   description_en text not null default '',
   instructions_ar text not null default '',
@@ -110,6 +111,7 @@ create table if not exists public.reports (
 );
 
 create index if not exists idx_items_assessment on public.assessment_items(assessment_id, position);
+create index if not exists idx_assessments_suite on public.assessments(suite);
 create index if not exists idx_reports_created on public.reports(created_at desc);
 create index if not exists idx_reports_review_status on public.reports(review_status);
 create index if not exists idx_sessions_assessment on public.sessions(assessment_id);
@@ -166,6 +168,7 @@ language sql stable security definer set search_path = public as $$
     'descriptionAr', a.description_ar,
     'descriptionEn', a.description_en,
     'category', a.category,
+    'suite', a.suite,
     'version', a.version,
     'sortOrder', a.sort_order,
     'itemCount', (select count(*) from public.assessment_items i where i.assessment_id = a.id)
@@ -184,6 +187,7 @@ language sql stable security definer set search_path = public as $$
     'descriptionEn', a.description_en,
     'instructionsAr', a.instructions_ar,
     'instructionsEn', a.instructions_en,
+    'suite', a.suite,
     'version', a.version,
     'items', coalesce((
       select jsonb_agg(jsonb_build_object(
@@ -438,6 +442,30 @@ begin
   return jsonb_build_object('ok', true, 'id', v_user_id, 'email', v_email);
 end $$;
 
+-- Admin-only account deletion (deleting the auth user cascades to specialists)
+create or replace function public.delete_specialist_account(p_user_id uuid) returns jsonb
+language plpgsql security definer set search_path = public, extensions, auth as $$
+declare
+  v_email text;
+  v_name text;
+begin
+  if not public.is_admin() then
+    raise exception 'غير مسموح لك بحذف الحسابات';
+  end if;
+  if p_user_id = auth.uid() then
+    raise exception 'لا يمكنك حذف حسابك الخاص';
+  end if;
+  select email, full_name into v_email, v_name from public.specialists where id = p_user_id;
+  if not found then
+    raise exception 'الحساب غير موجود';
+  end if;
+  if lower(v_email) = 'demo@menoufia.edu.eg' then
+    raise exception 'لا يمكن حذف حساب العرض التجريبي';
+  end if;
+  delete from auth.users where id = p_user_id;
+  return jsonb_build_object('ok', true, 'email', v_email, 'fullName', v_name);
+end $$;
+
 -- =============================================================================
 -- 6. ROW LEVEL SECURITY
 -- =============================================================================
@@ -451,8 +479,14 @@ alter table public.answers enable row level security;
 alter table public.reports enable row level security;
 
 drop policy if exists "specialists manage specialists" on public.specialists;
-create policy "specialists manage specialists" on public.specialists
-for all to authenticated using (public.is_specialist()) with check (public.is_admin());
+create policy "specialists view specialists" on public.specialists
+for select to authenticated using (public.is_specialist());
+create policy "admins insert specialists" on public.specialists
+for insert to authenticated with check (public.is_admin());
+create policy "admins update specialists" on public.specialists
+for update to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy "admins delete specialists" on public.specialists
+for delete to authenticated using (public.is_admin());
 
 drop policy if exists "public read settings" on public.app_settings;
 create policy "public read settings" on public.app_settings
@@ -492,6 +526,7 @@ grant execute on function public.get_assessment_public(text) to anon, authentica
 grant execute on function public.get_public_settings() to anon, authenticated;
 grant execute on function public.submit_assessment(text, text, integer, text, text, text, jsonb) to anon, authenticated;
 grant execute on function public.create_specialist_account(text, text, text, text) to authenticated;
+grant execute on function public.delete_specialist_account(uuid) to authenticated;
 
 -- =============================================================================
 -- 7. PUBLIC SETTINGS SEED

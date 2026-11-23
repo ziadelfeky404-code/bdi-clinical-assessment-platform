@@ -31,6 +31,11 @@ const TONE_BY_KEY = {
   balanced: 'tone-emerald', developing: 'tone-amber', strained: 'tone-rose'
 };
 
+const SUITE_LABELS = {
+  clinical: 'الحقيبة الإكلينيكية',
+  special: 'حقيبة الفئات الخاصة'
+};
+
 function showLogin() {
   document.getElementById('login-view').classList.remove('hidden');
   document.getElementById('app-view').classList.add('hidden');
@@ -99,6 +104,8 @@ async function loadTeam() {
   const selfId = state.profile?.id;
   const tbody = (data || []).map(s => {
     const isSelf = s.id === selfId;
+    const isDemo = s.email === 'demo@menoufia.edu.eg';
+    const locked = isSelf || isDemo;
     return `
     <tr class="border-b border-slate-100 text-sm">
       <td class="py-3 px-3 font-bold text-slate-800">${escapeHtml(s.full_name || '—')}${isSelf ? '<span class="mr-2 text-[10px] text-emerald-700">(أنت)</span>' : ''}</td>
@@ -107,15 +114,20 @@ async function loadTeam() {
       <td class="py-3 px-3">${s.active ? '<span class="text-emerald-700 font-bold">مفعّل</span>' : '<span class="text-rose-700 font-bold">معطل</span>'}</td>
       <td class="py-3 px-3">
         <div class="flex items-center gap-2">
-          <button data-team-active="${escapeHtml(s.id)}" data-active="${s.active}" ${isSelf ? 'disabled title="لا يمكن تعطيل حسابك"' : ''}
+          <button data-team-active="${escapeHtml(s.id)}" data-active="${s.active}" ${locked ? 'disabled title="لا يمكن تغيير حالة هذا الحساب"' : ''}
             class="text-[11px] font-bold rounded-lg border px-2 py-1 disabled:opacity-40 ${s.active ? 'border-rose-200 text-rose-700 hover:bg-rose-50' : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50'}">
             ${s.active ? 'تعطيل' : 'تفعيل'}
           </button>
-          <select data-team-role="${escapeHtml(s.id)}" ${isSelf ? 'disabled title="لا يمكن تغيير صلاحيتك"' : ''}
+          <select data-team-role="${escapeHtml(s.id)}" ${locked ? 'disabled title="لا يمكن تغيير صلاحية هذا الحساب"' : ''}
             class="text-[11px] font-bold rounded-lg border border-slate-200 px-2 py-1 bg-white disabled:opacity-40">
             <option value="specialist" ${s.role === 'specialist' ? 'selected' : ''}>متخصص</option>
             <option value="admin" ${s.role === 'admin' ? 'selected' : ''}>مدير نظام</option>
           </select>
+          <button data-team-delete="${escapeHtml(s.id)}" data-name="${escapeHtml(s.full_name || s.email)}"
+            ${locked ? 'disabled title="لا يمكن حذف هذا الحساب"' : ''}
+            class="text-[11px] font-bold rounded-lg border border-rose-200 text-rose-700 px-2 py-1 hover:bg-rose-50 disabled:opacity-40">
+            حذف
+          </button>
         </div>
       </td>
     </tr>`;
@@ -123,7 +135,7 @@ async function loadTeam() {
 
   const host = document.getElementById('team-list');
   host.innerHTML = `
-    <table class="w-full min-w-[680px] text-right">
+    <table class="w-full min-w-[760px] text-right">
       <thead class="text-[11px] text-slate-500 border-b border-slate-200">
         <tr><th class="py-2 px-3">الاسم</th><th class="py-2 px-3">البريد</th><th class="py-2 px-3">الصلاحية</th><th class="py-2 px-3">الحالة</th><th class="py-2 px-3">تحكم</th></tr>
       </thead>
@@ -149,6 +161,21 @@ async function loadTeam() {
         const { error } = await sb.from('specialists').update({ role: select.value }).eq('id', select.dataset.teamRole);
         if (error) throw error;
         toast('تم تحديث الصلاحية');
+        loadTeam();
+      } catch (e) {
+        toast(errorMessage(e), 'error');
+      }
+    });
+  });
+
+  host.querySelectorAll('[data-team-delete]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const name = btn.dataset.name || 'هذا الحساب';
+      if (!window.confirm(`هل تريد حذف حساب «${name}» نهائياً؟ لا يمكن التراجع.`)) return;
+      try {
+        const { error } = await sb.rpc('delete_specialist_account', { p_user_id: btn.dataset.teamDelete });
+        if (error) throw error;
+        toast('تم حذف الحساب');
         loadTeam();
       } catch (e) {
         toast(errorMessage(e), 'error');
@@ -549,6 +576,7 @@ function renderAssessments() {
         </div>
         <span class="text-[10px] font-bold rounded-full px-2 py-1 ${a.active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}">${a.active ? 'مفعّل' : 'متوقف'}</span>
       </div>
+      <span class="inline-block text-[10px] font-bold rounded-full px-2 py-1 mb-2 ${a.suite === 'special' ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800'}">${escapeHtml(SUITE_LABELS[a.suite] || SUITE_LABELS.clinical)}</span>
       <p class="text-xs text-slate-500 leading-relaxed mb-4">${escapeHtml(a.description_ar || '')}</p>
       <div class="flex items-center justify-between pt-3 border-t border-slate-200/70">
         <span class="text-[11px] text-slate-500 font-en">v${escapeHtml(a.version)} • ${escapeHtml(a.slug)}</span>
@@ -638,6 +666,7 @@ async function openAssessmentEditor(assessment) {
   setTextValue('a-title-en', assessment?.title_en || '');
   setTextValue('a-patient-ar', assessment?.patient_label_ar || '');
   setTextValue('a-patient-en', assessment?.patient_label_en || '');
+  setTextValue('a-suite', assessment?.suite || 'clinical');
   setTextValue('a-category', assessment?.category || 'clinical');
   setTextValue('a-sort', assessment?.sort_order ?? 10);
   setTextValue('a-desc-ar', assessment?.description_ar || '');
@@ -689,6 +718,7 @@ async function saveAssessment() {
       title_en: document.getElementById('a-title-en').value.trim(),
       patient_label_ar: document.getElementById('a-patient-ar').value.trim(),
       patient_label_en: document.getElementById('a-patient-en').value.trim(),
+      suite: document.getElementById('a-suite').value,
       category: document.getElementById('a-category').value,
       sort_order: Number(document.getElementById('a-sort').value) || 0,
       description_ar: document.getElementById('a-desc-ar').value.trim(),

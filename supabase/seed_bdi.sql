@@ -4,7 +4,7 @@ declare
   v_assessment_id uuid;
 begin
   insert into public.assessments (
-    slug, title_ar, title_en, patient_label_ar, patient_label_en, category,
+    slug, title_ar, title_en, patient_label_ar, patient_label_en, category, suite,
     description_ar, description_en,
     instructions_ar, instructions_en,
     version, active, sort_order, cutoffs, critical_rules
@@ -14,6 +14,7 @@ begin
     'Beck Depression Inventory (BDI-II)',
     'أداة التقييم الإكلينيكي',
     'Clinical Assessment Inventory',
+    'clinical',
     'clinical',
     'أداة من 21 بنداً لتقييم الحالة النفسية العامة والشعور بالأسبوعين الماضيين.',
     'A 21-item tool for assessing general psychological state and recent feelings over the past two weeks.',

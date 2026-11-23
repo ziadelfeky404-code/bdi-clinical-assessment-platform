@@ -125,12 +125,12 @@ begin
   -- Extra demo assessments (patient-facing labels stay neutral).
   insert into public.assessments (
     slug, title_ar, title_en, patient_label_ar, patient_label_en,
-    category, description_ar, description_en, instructions_ar, instructions_en,
+    category, suite, description_ar, description_en, instructions_ar, instructions_en,
     version, active, cutoffs, critical_rules, sort_order
   ) values (
     'stress-check', 'استبيان التوتر العام', 'General Stress Checklist',
     'استبيان الحالة العامة', 'General Wellbeing Checklist',
-    'clinical',
+    'clinical', 'clinical',
     'أداة من 12 بنداً لقياس مستوى الضغط النفسي والتوتر.',
     'A 12-item tool for measuring perceived stress.',
     'اختر الإجابة الأقرب إلى حالتك خلال آخر شهر.',
@@ -148,7 +148,7 @@ begin
   ), (
     'coping-style', 'مقياس أساليب التكيف', 'Coping Styles Inventory',
     'استبيان خصائص الشخصية', 'Personality Checklist',
-    'personality',
+    'personality', 'special',
     'أداة من 10 بنود لاستكشاف طرق التعامل مع الضغوط.',
     'A 10-item tool for exploring ways of handling pressure.',
     'اختر الإجابة التي تعبّر عنك عادةً.',
