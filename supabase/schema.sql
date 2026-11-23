@@ -100,11 +100,18 @@ create table if not exists public.reports (
   alerts jsonb not null default '[]'::jsonb,
   snapshot jsonb not null default '{}'::jsonb,
   version text not null default '1.0',
+  narrative jsonb,
+  clinical_notes text not null default '',
+  review_status text not null default 'draft' check (review_status in ('draft', 'approved')),
+  reviewed_by uuid,
+  reviewed_by_name text not null default '',
+  reviewed_at timestamptz,
   created_at timestamptz not null default now()
 );
 
 create index if not exists idx_items_assessment on public.assessment_items(assessment_id, position);
 create index if not exists idx_reports_created on public.reports(created_at desc);
+create index if not exists idx_reports_review_status on public.reports(review_status);
 create index if not exists idx_sessions_assessment on public.sessions(assessment_id);
 
 -- =============================================================================

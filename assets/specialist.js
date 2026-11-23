@@ -8,7 +8,8 @@ const state = {
   reports: [],
   settings: {},
   editing: null,
-  editorItems: []
+  editorItems: [],
+  currentReportId: null
 };
 
 const SETTING_FIELDS = [
@@ -94,21 +95,66 @@ async function loadTeam() {
   if (!state.isAdmin) return;
   const { data, error } = await sb.from('specialists').select('*').order('created_at');
   if (error) { toast(errorMessage(error), 'error'); return; }
-  const tbody = (data || []).map(s => `
+
+  const selfId = state.profile?.id;
+  const tbody = (data || []).map(s => {
+    const isSelf = s.id === selfId;
+    return `
     <tr class="border-b border-slate-100 text-sm">
-      <td class="py-3 px-3 font-bold text-slate-800">${escapeHtml(s.full_name || '—')}</td>
+      <td class="py-3 px-3 font-bold text-slate-800">${escapeHtml(s.full_name || '—')}${isSelf ? '<span class="mr-2 text-[10px] text-emerald-700">(أنت)</span>' : ''}</td>
       <td class="py-3 px-3 text-slate-600" dir="ltr" style="text-align:right">${escapeHtml(s.email)}</td>
       <td class="py-3 px-3">${s.role === 'admin' ? 'مدير نظام' : 'متخصص'}</td>
       <td class="py-3 px-3">${s.active ? '<span class="text-emerald-700 font-bold">مفعّل</span>' : '<span class="text-rose-700 font-bold">معطل</span>'}</td>
-    </tr>
-  `).join('');
-  document.getElementById('team-list').innerHTML = `
-    <table class="w-full min-w-[560px] text-right">
+      <td class="py-3 px-3">
+        <div class="flex items-center gap-2">
+          <button data-team-active="${escapeHtml(s.id)}" data-active="${s.active}" ${isSelf ? 'disabled title="لا يمكن تعطيل حسابك"' : ''}
+            class="text-[11px] font-bold rounded-lg border px-2 py-1 disabled:opacity-40 ${s.active ? 'border-rose-200 text-rose-700 hover:bg-rose-50' : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50'}">
+            ${s.active ? 'تعطيل' : 'تفعيل'}
+          </button>
+          <select data-team-role="${escapeHtml(s.id)}" ${isSelf ? 'disabled title="لا يمكن تغيير صلاحيتك"' : ''}
+            class="text-[11px] font-bold rounded-lg border border-slate-200 px-2 py-1 bg-white disabled:opacity-40">
+            <option value="specialist" ${s.role === 'specialist' ? 'selected' : ''}>متخصص</option>
+            <option value="admin" ${s.role === 'admin' ? 'selected' : ''}>مدير نظام</option>
+          </select>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  const host = document.getElementById('team-list');
+  host.innerHTML = `
+    <table class="w-full min-w-[680px] text-right">
       <thead class="text-[11px] text-slate-500 border-b border-slate-200">
-        <tr><th class="py-2 px-3">الاسم</th><th class="py-2 px-3">البريد</th><th class="py-2 px-3">الصلاحية</th><th class="py-2 px-3">الحالة</th></tr>
+        <tr><th class="py-2 px-3">الاسم</th><th class="py-2 px-3">البريد</th><th class="py-2 px-3">الصلاحية</th><th class="py-2 px-3">الحالة</th><th class="py-2 px-3">تحكم</th></tr>
       </thead>
-      <tbody>${tbody || '<tr><td colspan="4" class="py-6 text-center text-slate-400">لا يوجد متخصصون</td></tr>'}</tbody>
+      <tbody>${tbody || '<tr><td colspan="5" class="py-6 text-center text-slate-400">لا يوجد متخصصون</td></tr>'}</tbody>
     </table>`;
+
+  host.querySelectorAll('[data-team-active]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      try {
+        const { error } = await sb.from('specialists').update({ active: btn.dataset.active !== 'true' }).eq('id', btn.dataset.teamActive);
+        if (error) throw error;
+        toast('تم تحديث حالة الحساب');
+        loadTeam();
+      } catch (e) {
+        toast(errorMessage(e), 'error');
+      }
+    });
+  });
+
+  host.querySelectorAll('[data-team-role]').forEach(select => {
+    select.addEventListener('change', async () => {
+      try {
+        const { error } = await sb.from('specialists').update({ role: select.value }).eq('id', select.dataset.teamRole);
+        if (error) throw error;
+        toast('تم تحديث الصلاحية');
+        loadTeam();
+      } catch (e) {
+        toast(errorMessage(e), 'error');
+      }
+    });
+  });
 }
 
 function severityLabel(report) {
@@ -266,10 +312,13 @@ function buildClinicalNarrative(report) {
 function openReport(id) {
   const r = state.reports.find(x => x.id === id);
   if (!r) return;
+  state.currentReportId = id;
   const snap = r.snapshot || {};
   const alerts = r.alerts || [];
   const items = snap.items || [];
-  const narrative = buildClinicalNarrative(r);
+  const narrative = r.narrative || buildClinicalNarrative(r);
+  document.getElementById('report-edit-panel').classList.add('hidden');
+  document.getElementById('report-modal-body').classList.remove('hidden');
 
   document.getElementById('report-modal-body').innerHTML = `
     <div class="border-b border-slate-200 pb-5 mb-5">
@@ -354,12 +403,140 @@ function openReport(id) {
       </div>
     </div>
 
+    ${r.clinical_notes ? `
+      <div class="avoid-break mb-6 rounded-xl border border-indigo-200 bg-indigo-50/60 p-5">
+        <h3 class="font-extrabold text-indigo-900 mb-2 text-sm flex items-center gap-2"><i class="fa-solid fa-note-sticky"></i> ملاحظات إكلينيكية</h3>
+        <p class="text-xs leading-relaxed text-slate-700 whitespace-pre-line">${escapeHtml(r.clinical_notes)}</p>
+      </div>` : ''}
+
+    ${r.review_status === 'approved' ? `
+      <div class="avoid-break mb-6 rounded-xl border-2 border-emerald-200 bg-emerald-50 p-4 flex items-center gap-3">
+        <i class="fa-solid fa-circle-check text-emerald-700"></i>
+        <p class="text-xs font-bold text-emerald-900">معتمد من ${escapeHtml(r.reviewed_by_name || 'متخصص')} ${r.reviewed_at ? '• ' + formatDate(r.reviewed_at, true) : ''}</p>
+      </div>` : ''}
+
     <div class="grid grid-cols-2 gap-8 text-center text-xs text-slate-700 mt-10 pt-6 border-t border-slate-200 avoid-break">
       <div><p class="font-bold mb-8">توقيع الأخصائي النفسي</p><div class="w-48 mx-auto border-b border-dashed border-slate-400"></div></div>
       <div><p class="font-bold mb-8">اعتماد المشرف الأكاديمي</p><div class="w-48 mx-auto border-b border-dashed border-slate-400"></div></div>
     </div>`;
 
+  renderReportStatus(r, !!r.narrative);
   document.getElementById('report-modal').classList.remove('hidden');
+}
+
+function renderReportStatus(report, hasCustomNarrative) {
+  const badge = document.getElementById('report-status-badge');
+  const approved = report.review_status === 'approved';
+  badge.textContent = approved ? 'معتمد' : 'مسودة';
+  badge.className = `text-[10px] font-bold rounded-full px-2 py-1 ${approved ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`;
+  document.getElementById('approve-report-btn').classList.toggle('hidden', approved);
+  document.getElementById('reset-report-btn').classList.toggle('hidden', !hasCustomNarrative);
+}
+
+function reportNarrative(report) {
+  return report.narrative || buildClinicalNarrative(report);
+}
+
+function linesToArray(value) {
+  return String(value || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+}
+
+function startReportEdit() {
+  const report = state.reports.find(x => x.id === state.currentReportId);
+  if (!report) return;
+  const narrative = reportNarrative(report);
+  document.getElementById('edit-diagnosis').value = narrative.diagnosis || '';
+  document.getElementById('edit-strengths').value = (narrative.strengths || []).join('\n');
+  document.getElementById('edit-weaknesses').value = (narrative.weaknesses || []).join('\n');
+  document.getElementById('edit-recommendations').value = (narrative.recommendations || []).join('\n');
+  document.getElementById('edit-notes').value = report.clinical_notes || '';
+  document.getElementById('report-modal-body').classList.add('hidden');
+  document.getElementById('report-edit-panel').classList.remove('hidden');
+}
+
+async function saveReportEdit() {
+  const report = state.reports.find(x => x.id === state.currentReportId);
+  if (!report) return;
+  try {
+    const narrative = {
+      diagnosis: document.getElementById('edit-diagnosis').value.trim(),
+      strengths: linesToArray(document.getElementById('edit-strengths').value),
+      weaknesses: linesToArray(document.getElementById('edit-weaknesses').value),
+      recommendations: linesToArray(document.getElementById('edit-recommendations').value)
+    };
+    const { error } = await sb.from('reports').update({
+      narrative,
+      clinical_notes: document.getElementById('edit-notes').value.trim(),
+      review_status: 'draft',
+      reviewed_by: null,
+      reviewed_by_name: '',
+      reviewed_at: null
+    }).eq('id', report.id);
+    if (error) throw error;
+    Object.assign(report, {
+      narrative,
+      clinical_notes: document.getElementById('edit-notes').value.trim(),
+      review_status: 'draft',
+      reviewed_by: null,
+      reviewed_by_name: '',
+      reviewed_at: null
+    });
+    openReport(report.id);
+    toast('تم حفظ التقرير');
+  } catch (e) {
+    toast(errorMessage(e), 'error');
+  }
+}
+
+async function resetReportNarrative() {
+  const report = state.reports.find(x => x.id === state.currentReportId);
+  if (!report) return;
+  try {
+    const { error } = await sb.from('reports').update({
+      narrative: null,
+      review_status: 'draft',
+      reviewed_by: null,
+      reviewed_by_name: '',
+      reviewed_at: null
+    }).eq('id', report.id);
+    if (error) throw error;
+    Object.assign(report, {
+      narrative: null,
+      review_status: 'draft',
+      reviewed_by: null,
+      reviewed_by_name: '',
+      reviewed_at: null
+    });
+    openReport(report.id);
+    toast('تم استرجاع الصياغة الآلية وإعادة التقرير للمسودة');
+  } catch (e) {
+    toast(errorMessage(e), 'error');
+  }
+}
+
+async function approveReport() {
+  const report = state.reports.find(x => x.id === state.currentReportId);
+  if (!report) return;
+  try {
+    const now = new Date().toISOString();
+    const { error } = await sb.from('reports').update({
+      review_status: 'approved',
+      reviewed_by: state.profile?.id || null,
+      reviewed_by_name: state.profile?.full_name || 'متخصص',
+      reviewed_at: now
+    }).eq('id', report.id);
+    if (error) throw error;
+    Object.assign(report, {
+      review_status: 'approved',
+      reviewed_by: state.profile?.id || null,
+      reviewed_by_name: state.profile?.full_name || 'متخصص',
+      reviewed_at: now
+    });
+    openReport(report.id);
+    toast('تم اعتماد التقرير');
+  } catch (e) {
+    toast(errorMessage(e), 'error');
+  }
 }
 
 function renderAssessments() {
@@ -600,7 +777,8 @@ async function authorize() {
   state.isAdmin = data.role === 'admin';
   state.isDemo = (data.email || user.email) === 'demo@menoufia.edu.eg';
   setText('user-label', `${data.full_name || user.email} ${state.isDemo ? '• عرض تجريبي' : state.isAdmin ? '• مدير' : ''}`);
-  document.getElementById('add-team-card').classList.toggle('hidden', !state.isAdmin);
+  document.getElementById('add-team-card').classList.add('hidden');
+  document.getElementById('show-team-btn').classList.toggle('hidden', !state.isAdmin);
   document.getElementById('demo-banner').classList.toggle('hidden', !state.isDemo);
   showApp();
 
@@ -675,6 +853,14 @@ function bindEvents() {
   document.getElementById('report-filter').addEventListener('change', renderReports);
   document.getElementById('close-report-btn').addEventListener('click', () => document.getElementById('report-modal').classList.add('hidden'));
   document.getElementById('print-report-btn').addEventListener('click', () => window.print());
+  document.getElementById('edit-report-btn').addEventListener('click', startReportEdit);
+  document.getElementById('cancel-report-btn').addEventListener('click', () => {
+    document.getElementById('report-edit-panel').classList.add('hidden');
+    document.getElementById('report-modal-body').classList.remove('hidden');
+  });
+  document.getElementById('save-report-btn').addEventListener('click', saveReportEdit);
+  document.getElementById('reset-report-btn').addEventListener('click', resetReportNarrative);
+  document.getElementById('approve-report-btn').addEventListener('click', approveReport);
   document.getElementById('report-modal').addEventListener('click', e => {
     if (e.target.id === 'report-modal') document.getElementById('report-modal').classList.add('hidden');
   });
@@ -694,6 +880,7 @@ function bindEvents() {
 
   document.getElementById('save-settings-btn').addEventListener('click', saveSettings);
 
+  document.getElementById('show-team-btn').addEventListener('click', () => document.getElementById('add-team-card').classList.remove('hidden'));
   document.getElementById('cancel-team-btn').addEventListener('click', () => document.getElementById('add-team-card').classList.add('hidden'));
   document.getElementById('save-team-btn').addEventListener('click', async () => {
     try {

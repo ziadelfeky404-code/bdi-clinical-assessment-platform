@@ -184,8 +184,13 @@
       <!-- Team -->
       <section id="tab-team" class="hidden fade-in space-y-6">
         <div class="bg-white rounded-2xl border border-slate-200 p-6">
-          <h3 class="font-extrabold text-slate-900 mb-1">حسابات المتخصصين</h3>
-          <p class="text-xs text-slate-500 mb-5">يمكن لمدير النظام إضافة متخصصين جدد وتحديد صلاحياتهم.</p>
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+            <div>
+              <h3 class="font-extrabold text-slate-900 mb-1">حسابات المتخصصين</h3>
+              <p class="text-xs text-slate-500">يمكن لمدير النظام إضافة متخصصين وتعديل صلاحياتهم وحالتهم.</p>
+            </div>
+            <button id="show-team-btn" class="hidden btn-primary !py-2 !px-3 text-xs flex items-center gap-2"><i class="fa-solid fa-plus"></i> إضافة متخصص</button>
+          </div>
           <div id="team-list" class="overflow-x-auto"></div>
         </div>
         <div id="add-team-card" class="hidden bg-white rounded-2xl border border-slate-200 p-6">
@@ -218,14 +223,51 @@
   <!-- REPORT MODAL -->
   <div id="report-modal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-start justify-center p-3 sm:p-6 overflow-y-auto">
     <div class="print-full bg-white rounded-2xl w-full max-w-4xl my-2 shadow-2xl">
-      <div class="no-print flex items-center justify-between p-4 border-b border-slate-200">
-        <h3 class="font-extrabold text-slate-900">تفاصيل التقرير</h3>
+      <div class="no-print flex items-center justify-between gap-3 p-4 border-b border-slate-200">
         <div class="flex items-center gap-2">
+          <h3 class="font-extrabold text-slate-900">تفاصيل التقرير</h3>
+          <span id="report-status-badge" class="text-[10px] font-bold rounded-full px-2 py-1 bg-slate-100 text-slate-600">مسودة</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="reset-report-btn" class="btn-ghost !py-1.5 !px-3 text-xs hidden"><i class="fa-solid fa-rotate ml-1"></i> استرجاع الآلي</button>
+          <button id="edit-report-btn" class="btn-ghost !py-1.5 !px-3 text-xs"><i class="fa-solid fa-pen ml-1"></i> تعديل</button>
+          <button id="approve-report-btn" class="btn-primary !py-1.5 !px-3 text-xs"><i class="fa-solid fa-check ml-1"></i> اعتماد</button>
           <button id="print-report-btn" class="btn-ghost !py-1.5 !px-3"><i class="fa-solid fa-print ml-1"></i> طباعة</button>
           <button id="close-report-btn" class="btn-ghost !py-1.5 !px-3"><i class="fa-solid fa-xmark"></i></button>
         </div>
       </div>
       <div id="report-modal-body" class="p-6"></div>
+
+      <div id="report-edit-panel" class="no-print hidden p-6 space-y-4 border-t border-slate-200 bg-slate-50">
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="field-label">التشخيص المبدئي</label>
+            <textarea id="edit-diagnosis" class="field" rows="3"></textarea>
+          </div>
+          <div>
+            <label class="field-label">ملاحظات إكلينيكية (للمتخصص فقط)</label>
+            <textarea id="edit-notes" class="field" rows="3" placeholder="ملاحظات الجلسة، خطة المتابعة…"></textarea>
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="field-label">نقاط القوة (سطر لكل نقطة)</label>
+            <textarea id="edit-strengths" class="field" rows="5"></textarea>
+          </div>
+          <div>
+            <label class="field-label">نقاط الضعف (سطر لكل نقطة)</label>
+            <textarea id="edit-weaknesses" class="field" rows="5"></textarea>
+          </div>
+        </div>
+        <div>
+          <label class="field-label">التوصيات (سطر لكل توصية)</label>
+          <textarea id="edit-recommendations" class="field" rows="4"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button id="cancel-report-btn" class="btn-ghost">إلغاء</button>
+          <button id="save-report-btn" class="btn-primary"><i class="fa-solid fa-floppy-disk ml-1"></i> حفظ التقرير</button>
+        </div>
+      </div>
     </div>
   </div>
 
