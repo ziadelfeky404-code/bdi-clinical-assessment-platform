@@ -206,7 +206,12 @@ begin
       ('stress-check'::text, 'هالة م. (تجريبي)'::text, 45::int, 'أنثى'::text, 'د. سارة علي'::text, 9::int, 'stress_mid'::text),
       ('stress-check'::text, 'عمر خ. (تجريبي)'::text, 26::int, 'ذكر'::text, 'د. سارة علي'::text, 10::int, 'stress_high'::text),
       ('coping-style'::text, 'منى أ. (تجريبي)'::text, 33::int, 'أنثى'::text, 'د. سارة علي'::text, 11::int, 'coping_low'::text),
-      ('coping-style'::text, 'طارق ي. (تجريبي)'::text, 39::int, 'ذكر'::text, 'د. سارة علي'::text, 12::int, 'coping_high'::text)
+      ('coping-style'::text, 'طارق ي. (تجريبي)'::text, 39::int, 'ذكر'::text, 'د. سارة علي'::text, 12::int, 'coping_high'::text),
+      ('y-bocs'::text, 'ليلى ح. (تجريبي)'::text, 27::int, 'أنثى'::text, 'د. محمد حسن'::text, 13::int, 'ybocs_mild'::text),
+      ('y-bocs'::text, 'كريم ص. (تجريبي)'::text, 31::int, 'ذكر'::text, 'د. محمد حسن'::text, 14::int, 'ybocs_severe'::text),
+      ('raven-spm'::text, 'دانا م. (تجريبي)'::text, 18::int, 'أنثى'::text, 'د. سارة علي'::text, 15::int, 'raven_average'::text),
+      ('raven-spm'::text, 'باسم ع. (تجريبي)'::text, 22::int, 'ذكر'::text, 'د. سارة علي'::text, 16::int, 'raven_high'::text),
+      ('mmpi-566'::text, 'مدحت س. (تجريبي)'::text, 35::int, 'ذكر'::text, 'د. محمد حسن'::text, 17::int, 'mmpi_demo'::text)
     ) as t(slug, patient_name, patient_age, patient_gender, examiner, days_ago, pattern)
   loop
     select id into v_a_id from public.assessments where slug = v_rec.slug;
@@ -225,6 +230,11 @@ begin
         when 'stress_high' then case when v_item.position <= 10 then 3 else 2 end
         when 'coping_low' then case when v_item.position <= 5 then 1 else 0 end
         when 'coping_high' then case when v_item.position <= 9 then 3 else 2 end
+        when 'ybocs_mild' then case when v_item.position % 2 = 0 then 1 else 0 end
+        when 'ybocs_severe' then 3
+        when 'raven_average' then case when v_item.position <= 40 then 1 else 0 end
+        when 'raven_high' then case when v_item.position <= 54 then 1 else 0 end
+        when 'mmpi_demo' then case when v_item.position % 97 = 0 then 2 else 1 end
         else 0
       end;
 

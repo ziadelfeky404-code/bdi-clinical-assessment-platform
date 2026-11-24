@@ -50,14 +50,29 @@ function renderCurrent() {
 
   const selected = state.answers[item.position]?.[0];
   const container = document.getElementById('options-container');
-  container.innerHTML = item.options.map(opt => `
-    <button type="button" class="opt-card w-full text-right rounded-xl border px-4 py-3.5 flex flex-col gap-1 ${
+  const prompt = (item.textAr || item.textEn) ? `
+    <div class="mb-4 rounded-xl bg-white border border-slate-200 p-4">
+      <p class="text-sm sm:text-base font-bold text-slate-800 leading-relaxed">${escapeHtml(item.textAr || '')}</p>
+      ${item.textEn ? `<p class="font-en text-[11px] text-slate-400 mt-1.5">${escapeHtml(item.textEn)}</p>` : ''}
+    </div>` : '';
+  const figure = item.imageUrl ? `
+    <div class="mb-4 flex justify-center rounded-xl bg-white border border-slate-200 p-3">
+      <img src="${escapeHtml(item.imageUrl)}" alt="محتوى البند" class="max-h-[58vh] w-auto max-w-full object-contain" />
+    </div>` : '';
+  container.innerHTML = `${prompt}${figure}` + item.options.map((opt, optIndex) => {
+    const isNumericLabel = /^\d+$/.test(String(opt.ar || '').trim());
+    const badge = isNumericLabel ? '' : `<span class="opt-number">${optIndex + 1}</span>`;
+    return `
+    <button type="button" class="opt-card w-full text-right rounded-xl border px-4 py-3.5 flex items-start gap-3 ${
       opt.score === selected ? 'selected border-emerald-700' : 'border-slate-200 bg-white'
     }" data-score="${escapeHtml(opt.score)}">
-      <span class="text-sm sm:text-base font-semibold text-slate-800 leading-relaxed">${escapeHtml(opt.ar)}</span>
-      <span class="font-en text-[11px] text-slate-400">${escapeHtml(opt.en)}</span>
-    </button>
-  `).join('');
+      ${badge}
+      <span class="flex-1 flex flex-col gap-1">
+        <span class="text-sm sm:text-base font-semibold text-slate-800 leading-relaxed">${escapeHtml(opt.ar)}</span>
+        <span class="font-en text-[11px] text-slate-400">${escapeHtml(opt.en)}</span>
+      </span>
+    </button>`;
+  }).join('');
 
   container.querySelectorAll('[data-score]').forEach(btn => {
     btn.addEventListener('click', () => {

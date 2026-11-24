@@ -1,1 +1,17 @@
-.vercel
+# Local/generated analysis artifacts (not needed to run the platform)
+tests/*.pdf
+tests/_small.png
+tests/_pages/
+tests/_pages_all/
+tests/_extracted/
+tests/_ocr/
+tests/_ocr_fast/
+tests/_ocr_rtl/
+tests/_eysenck/
+
+# Tooling / local environment
+node_modules/
+.vercel/
+*.log
+.DS_Store
+Thumbs.db

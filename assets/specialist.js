@@ -28,7 +28,9 @@ const SETTING_FIELDS = [
 const TONE_BY_KEY = {
   minimal: 'tone-emerald', mild: 'tone-amber', moderate: 'tone-orange', severe: 'tone-rose',
   low: 'tone-emerald', high: 'tone-rose',
-  balanced: 'tone-emerald', developing: 'tone-amber', strained: 'tone-rose'
+  balanced: 'tone-emerald', developing: 'tone-amber', strained: 'tone-rose',
+  within: 'tone-emerald', elevated: 'tone-amber', marked: 'tone-rose',
+  average: 'tone-emerald', above: 'tone-sky', superior: 'tone-amber'
 };
 
 const SUITE_LABELS = {
@@ -291,7 +293,14 @@ function buildClinicalNarrative(report) {
     high: 'مستوى ضغط مرتفع يستدعي تدخلاً إكلينيكياً.',
     balanced: 'نمط تكيف متوازن ومرن مع الضغوط.',
     developing: 'بعض مهارات التكيف تحتاج إلى تنمية وتدعيم.',
-    strained: 'نمط تكيف مرهق يستدعي دعماً إكلينيكياً.'
+    strained: 'نمط تكيف مرهق يستدعي دعماً إكلينيكياً.',
+    below: 'النتيجة أقل من المتوسط المرجعي لهذه الأداة.',
+    average: 'النتيجة ضمن المتوسط المرجعي لهذه الأداة.',
+    above: 'النتيجة أعلى من المتوسط المرجعي لهذه الأداة.',
+    superior: 'النتيجة في نطاق مرتفع مقارنة بالمتوسط المرجعي.',
+    within: 'لم تتجاوز المقاييس السريرية الرئيسية العتبة المعتمدة في الجدول التقريبي.',
+    elevated: 'ارتفاع سريري واضح في واحد أو أكثر من المقاييس الرئيسية.',
+    marked: 'ارتفاع سريري شديد في واحد أو أكثر من المقاييس الرئيسية.'
   };
 
   let diagnosis = `التصنيف المبدئي وفق الأداة: ${report.severity_ar} (الدرجة ${report.raw_score} من ${report.max_score}).`;
@@ -302,26 +311,55 @@ function buildClinicalNarrative(report) {
     diagnosis += ' توجد مؤشرات إضافية تحتاج متابعة إكلينيكية مختصرة.';
   }
 
+  const scaleScores = report.snapshot?.scaleScores || {};
+  const validityKeys = new Set(['L', 'F', 'K', 'Q']);
+  const interpretiveMeta = (report.snapshot?.scaleMeta || []).filter(s =>
+    s && s.key && !s.hidden && !validityKeys.has(s.key) && Number.isFinite(Number(scaleScores[s.key])));
+  // Scales carrying raw mean/sd are converted to T scores by the server.
+  // Compare their stored scores with the T metric (50/10), not the raw norm.
+  const metricOf = s => Number.isFinite(Number(s.mean)) && Number.isFinite(Number(s.sd))
+    ? { mean: 50, sd: 10 }
+    : { mean: Number(s.mean), sd: Number(s.sd) };
+  const highScales = interpretiveMeta.filter(s => {
+    const value = Number(scaleScores[s.key]);
+    const cutoff = Number(s.elevate);
+    if (Number.isFinite(cutoff)) return value >= cutoff;
+    const { mean, sd } = metricOf(s);
+    return Number.isFinite(mean) && Number.isFinite(sd) && value >= mean + 1.5 * sd;
+  });
+  const lowScales = interpretiveMeta.filter(s => {
+    const value = Number(scaleScores[s.key]);
+    const { mean, sd } = metricOf(s);
+    return Number.isFinite(mean) && Number.isFinite(sd) && value <= mean - sd;
+  });
+  if (highScales.length) {
+    diagnosis += ` ارتفاع لافت على: ${highScales.map(s => s.ar || s.key).join('، ')}.`;
+  }
+
   const alertPositions = new Set(alerts.map(a => Number(a.position)).filter(n => Number.isFinite(n)));
   const highItems = items.filter(i => Number(i.score) >= 2).sort((a, b) => Number(b.score) - Number(a.score));
   const lowItems = items.filter(i => Number(i.score) <= 1 && !alertPositions.has(Number(i.position)));
   const labelOf = i => shortLabel(i.textAr || i.textEn || 'بند بدون نص');
 
-  const strengths = lowItems.length
-    ? lowItems.slice(0, 3).map(i => `استجابة منخفضة على البند (${i.position}): ${labelOf(i)}`)
-    : ['لم تبرز بنود منخفضة بوضوح؛ وتُقرأ النتيجة في ضوء التصنيف العام.'];
+  const strengths = lowScales.length
+    ? lowScales.slice(0, 5).map(s => `${s.ar || s.key}: ${Number(scaleScores[s.key]).toFixed(1)} — ضمن النطاق الأقل في الجدول المرجعي.`)
+    : lowItems.length
+      ? lowItems.slice(0, 3).map(i => `استجابة منخفضة على البند (${i.position}): ${labelOf(i)}`)
+      : ['لم تبرز بنود منخفضة بوضوح؛ وتُقرأ النتيجة في ضوء التصنيف العام.'];
 
-  const weaknesses = highItems.length
-    ? highItems.slice(0, 3).map(i => `استجابة مرتفعة على البند (${i.position}): ${labelOf(i)}`)
-    : ['لا توجد بنود مرتفعة بشكل لافت ضمن هذه الاستجابات.'];
+  const weaknesses = highScales.length
+    ? highScales.slice(0, 5).map(s => `${s.ar || s.key}: ${Number(scaleScores[s.key]).toFixed(1)} — فوق العتبة المرجعية، ويُفسّر مع بقية المقاييس.`)
+    : highItems.length
+      ? highItems.slice(0, 3).map(i => `استجابة مرتفعة على البند (${i.position}): ${labelOf(i)}`)
+      : ['لا توجد بنود مرتفعة بشكل لافت ضمن هذه الاستجابات.'];
 
   const recommendations = [];
   if (critical.length) {
     recommendations.push('تقييم مباشر وعاجل لمخاطر الإيذاء النفس، وتفعيل خطة سلامة تحت إشراف المتخصص، مع إحالة لطبيب نفسي عند اللزوم.');
   }
-  if (key === 'severe' || key === 'high' || key === 'strained') {
+  if (key === 'severe' || key === 'high' || key === 'strained' || key === 'marked') {
     recommendations.push('إحالة إلى أخصائي نفسي أو طبيب نفسي لوضع خطة علاج متكاملة ومتابعة قريبة الأجل.');
-  } else if (key === 'moderate' || key === 'developing') {
+  } else if (key === 'moderate' || key === 'developing' || key === 'elevated') {
     recommendations.push('جلسات متابعة منتظمة مع إعادة تقييم بالأداة نفسها بعد 4 أسابيع تقريباً.');
   } else if (key === 'mild') {
     recommendations.push('متابعة دورية وتعزيز استراتيجيات التأقلم والدعم الاجتماعي.');
@@ -384,6 +422,19 @@ function openReport(id) {
               <p class="text-sm font-extrabold ${a.severity === 'critical' ? 'text-rose-900' : 'text-amber-900'}">${escapeHtml(a.titleAr)}</p>
               <p class="text-xs leading-relaxed mt-1 text-slate-700">${escapeHtml(a.bodyAr)}</p>
               <p class="font-en text-[11px] font-bold text-slate-500 mt-2">${escapeHtml(a.titleEn)}</p>
+            </div>`).join('')}
+        </div>
+      </div>` : ''}
+
+    ${Object.keys(snap.scaleScores || {}).length ? `
+      <div class="mb-6">
+        <h3 class="font-extrabold text-slate-900 mb-3 flex items-center gap-2"><i class="fa-solid fa-chart-simple text-emerald-700"></i> الدرجات على المقاييس الفرعية</h3>
+        <div class="grid sm:grid-cols-3 gap-3">
+          ${(snap.scaleMeta || []).filter(s => s && s.key && !s.hidden && snap.scaleScores[s.key] !== undefined).map(s => `
+            <div class="rounded-xl border border-slate-200 bg-white p-4">
+              <p class="text-xs font-bold text-slate-800">${escapeHtml(s.ar || s.key)}</p>
+              <p class="font-en text-[10px] text-slate-400">${escapeHtml(s.en || s.key)}</p>
+              <p class="text-xl font-extrabold text-emerald-800 mt-2" dir="ltr">${Number(snap.scaleScores[s.key]).toFixed(Number.isInteger(snap.scaleScores[s.key]) ? 0 : 1)}</p>
             </div>`).join('')}
         </div>
       </div>` : ''}
@@ -628,6 +679,10 @@ function renderItemsEditor() {
         <div><label class="field-label">نص البند (عربي)</label><textarea class="field" rows="2" data-ifield="text_ar" data-idx="${idx}">${escapeHtml(item.text_ar || '')}</textarea></div>
         <div><label class="field-label">Item text (English)</label><textarea class="field" rows="2" data-ifield="text_en" data-idx="${idx}">${escapeHtml(item.text_en || '')}</textarea></div>
       </div>
+      <div class="grid sm:grid-cols-2 gap-3 mb-3">
+        <div><label class="field-label">صورة البند (اختياري)</label><input class="field font-en" dir="ltr" data-ifield="image_url" data-idx="${idx}" value="${escapeHtml(item.image_url || '')}" placeholder="assets/raven/A01.png" /></div>
+        <div><label class="field-label">المقاييس (JSON: [{"key":"E","direction":"positive"}])</label><textarea class="field font-en" dir="ltr" rows="2" data-ifield="scales" data-idx="${idx}">${escapeHtml(prettyJson(item.scales || []))}</textarea></div>
+      </div>
       <div><label class="field-label">الخيارات (JSON: [{"score":0,"ar":"...","en":"..."}])</label>
         <textarea class="field font-en" dir="ltr" rows="4" data-ifield="options" data-idx="${idx}">${escapeHtml(prettyJson(item.options))}</textarea>
       </div>
@@ -673,6 +728,7 @@ async function openAssessmentEditor(assessment) {
   setTextValue('a-instructions-ar', assessment?.instructions_ar || '');
   setTextValue('a-cutoffs', prettyJson(assessment?.cutoffs || []));
   setTextValue('a-rules', prettyJson(assessment?.critical_rules || []));
+  setTextValue('a-scale-meta', prettyJson(assessment?.scale_meta || []));
   document.getElementById('a-active').checked = assessment ? assessment.active : true;
 
   if (assessment) {
@@ -682,7 +738,7 @@ async function openAssessmentEditor(assessment) {
   } else {
     state.editorItems = [{
       position: 1, domain_ar: '', domain_en: '', title_ar: '', title_en: '',
-      text_ar: '', text_en: '',
+      text_ar: '', text_en: '', image_url: '', scales: [],
       options: [{ score: 0, ar: '', en: '' }, { score: 1, ar: '', en: '' }]
     }];
   }
@@ -710,6 +766,7 @@ async function saveAssessment() {
   try {
     const cutoffs = parseJsonField('a-cutoffs', 'حدود التصنيف');
     const rules = parseJsonField('a-rules', 'قواعد التنبيهات');
+    const scaleMeta = parseJsonField('a-scale-meta', 'مقاييس التصحيح');
 
     const payload = {
       slug: document.getElementById('a-slug').value.trim(),
@@ -725,6 +782,7 @@ async function saveAssessment() {
       instructions_ar: document.getElementById('a-instructions-ar').value.trim(),
       cutoffs,
       critical_rules: rules,
+      scale_meta: scaleMeta,
       active: document.getElementById('a-active').checked
     };
     if (!payload.slug || !payload.title_ar) throw new Error('المعرّف والعنوان مطلوبان');
@@ -749,7 +807,9 @@ async function saveAssessment() {
       title_en: String(item.title_en || ''),
       text_ar: String(item.text_ar || ''),
       text_en: String(item.text_en || ''),
-      options: typeof item.options === 'string' ? JSON.parse(item.options) : item.options
+      image_url: String(item.image_url || ''),
+      options: typeof item.options === 'string' ? JSON.parse(item.options) : item.options,
+      scales: typeof item.scales === 'string' ? JSON.parse(item.scales) : (item.scales || [])
     }));
 
     const keptIds = itemRows.filter(r => r.id).map(r => r.id);

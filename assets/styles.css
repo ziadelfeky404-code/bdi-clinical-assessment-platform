@@ -32,6 +32,21 @@ body {
 .opt-card { transition: all .15s ease; }
 .opt-card:hover { border-color: #34d399; background: #ecfdf5; }
 .opt-card.selected { border-color: #047857; background: #d1fae5; box-shadow: inset 0 0 0 1px #047857; }
+.opt-number {
+  flex: 0 0 auto;
+  min-width: 1.6rem;
+  height: 1.6rem;
+  border-radius: .5rem;
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+  font-size: .72rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.opt-card.selected .opt-number { background: #047857; color: #fff; border-color: #047857; }
 
 .nav-link { transition: all .15s ease; }
 .nav-link:hover { background: #ecfdf5; color: #065f46; }
