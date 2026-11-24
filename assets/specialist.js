@@ -1,4 +1,4 @@
-import { sb, escapeHtml, getSettings, setText, toast, errorMessage, formatDate } from './app.js';
+import { sb, escapeHtml, getSettings, setText, toast, errorMessage, formatDate, setupDialog } from './app.js';
 
 const state = {
   profile: null,
@@ -9,7 +9,8 @@ const state = {
   settings: {},
   editing: null,
   editorItems: [],
-  currentReportId: null
+  currentReportId: null,
+  lastFocused: null
 };
 
 const SETTING_FIELDS = [
@@ -54,12 +55,18 @@ function showApp() {
 
 function switchTab(name) {
   ['dashboard', 'reports', 'assessments', 'settings', 'team'].forEach(tab => {
-    document.getElementById(`tab-${tab}`).classList.toggle('hidden', tab !== name);
+    const panel = document.getElementById(`tab-${tab}`);
+    panel.classList.toggle('hidden', tab !== name);
+    panel.setAttribute('aria-hidden', tab === name ? 'false' : 'true');
   });
   document.querySelectorAll('nav button[data-tab]').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.tab === name);
+    const active = btn.dataset.tab === name;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('role', 'tab');
+    btn.setAttribute('aria-selected', active ? 'true' : 'false');
   });
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.querySelectorAll('section[id^="tab-"]').forEach(panel => panel.setAttribute('role', 'tabpanel'));
+  window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
 }
 
 function prettyJson(value) {
@@ -78,6 +85,92 @@ async function loadAssessments() {
     `<option value="${escapeHtml(a.id)}">${escapeHtml(a.title_ar)}</option>`
   ).join('');
   select.value = current || 'all';
+  renderCodePanel();
+}
+
+function renderCodePanel() {
+  const select = document.getElementById('access-code-assessment');
+  if (!select) return;
+  const current = select.value;
+  select.innerHTML = state.assessments.filter(a => a.active).map(a =>
+    `<option value="${escapeHtml(a.id)}">${escapeHtml(a.title_ar)}</option>`
+  ).join('');
+  if (current && [...select.options].some(o => o.value === current)) select.value = current;
+}
+
+async function loadAccessCodes() {
+  const host = document.getElementById('access-code-list');
+  if (!host) return;
+  try {
+    const { data, error } = await sb.rpc('list_access_codes');
+    if (error) throw error;
+    const rows = data || [];
+    if (!rows.length) {
+      host.innerHTML = '<p class="text-xs text-slate-600">لم يتم إصدار رموز بعد.</p>';
+      return;
+    }
+    host.innerHTML = `
+      <table class="min-w-full text-xs">
+        <thead class="text-slate-700"><tr>
+          <th class="text-right py-2">الاختبار</th><th class="text-right py-2">الرقم</th>
+          <th class="text-right py-2">الانتهاء</th><th class="text-right py-2">الحالة</th>
+          <th class="text-right py-2">إجراء</th>
+        </tr></thead>
+        <tbody>${rows.map(r => `<tr class="border-t border-slate-100">
+          <td class="py-2 font-bold">${escapeHtml(r.assessmentTitleAr)}</td>
+          <td class="py-2 font-en" dir="ltr">${escapeHtml(r.maskedCode)}</td>
+          <td class="py-2">${escapeHtml(formatDate(r.expiresAt, true))}</td>
+          <td class="py-2">${r.usedAt ? 'مستخدم' : r.revoked ? 'ملغي' : 'صالح'}</td>
+          <td class="py-2">${!r.usedAt && !r.revoked ? `<button type="button" class="font-bold text-rose-700 rounded focus-ring" data-revoke-code="${escapeHtml(r.id)}">إلغاء</button>` : '—'}</td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+    host.querySelectorAll('[data-revoke-code]').forEach(btn => btn.addEventListener('click', async () => {
+      try {
+        const { error } = await sb.rpc('revoke_access_code', { p_id: btn.dataset.revokeCode });
+        if (error) throw error;
+        toast('تم إلغاء الرقم');
+        await loadAccessCodes();
+      } catch (e) { toast(errorMessage(e), 'error'); }
+    }));
+  } catch (e) {
+    host.innerHTML = `<p class="text-xs text-rose-700">${escapeHtml(errorMessage(e))}</p>`;
+  }
+}
+
+function openAccessCodeModal(code, expiresAt, assessmentTitle) {
+  const modal = document.getElementById('access-code-modal');
+  state.lastFocused = document.activeElement;
+  setText('access-code-value', code);
+  setText('access-code-expires', `للاختبار: ${assessmentTitle} — ينتهي في ${formatDate(expiresAt, true)}`);
+  modal.classList.remove('hidden');
+  document.getElementById('access-code-close-btn').focus();
+}
+
+function closeAccessCodeModal() {
+  document.getElementById('access-code-modal').classList.add('hidden');
+  if (state.lastFocused?.focus) state.lastFocused.focus({ preventScroll: true });
+  loadAccessCodes();
+}
+
+async function issueAccessCode(assessmentId) {
+  const status = document.getElementById('access-code-status');
+  status.textContent = '';
+  if (!assessmentId) { status.textContent = 'اختر الاختبار أولاً.'; return; }
+  const btn = document.getElementById('issue-code-btn');
+  btn.setAttribute('aria-busy', 'true');
+  btn.disabled = true;
+  try {
+    const { data, error } = await sb.rpc('issue_assessment_access_code', { p_assessment_id: assessmentId });
+    if (error) throw error;
+    if (!data?.ok) throw new Error('تعذر إصدار رقم الدخول');
+    openAccessCodeModal(data.code, data.expiresAt, data.assessmentTitleAr);
+    toast('تم إنشاء رقم الدخول');
+  } catch (e) {
+    status.textContent = errorMessage(e);
+  } finally {
+    btn.removeAttribute('aria-busy');
+    btn.disabled = false;
+  }
 }
 
 async function loadReports() {
@@ -631,15 +724,23 @@ function renderAssessments() {
       <p class="text-xs text-slate-500 leading-relaxed mb-4">${escapeHtml(a.description_ar || '')}</p>
       <div class="flex items-center justify-between pt-3 border-t border-slate-200/70">
         <span class="text-[11px] text-slate-500 font-en">v${escapeHtml(a.version)} • ${escapeHtml(a.slug)}</span>
-        <div class="flex gap-2">
-          <button data-toggle-assessment="${escapeHtml(a.id)}" data-active="${a.active}" class="text-[11px] font-bold text-slate-600 hover:text-emerald-700">${a.active ? 'إيقاف' : 'تفعيل'}</button>
-          <button data-edit-assessment="${escapeHtml(a.id)}" class="text-[11px] font-bold text-emerald-700">تعديل</button>
+        <div class="flex flex-wrap gap-2">
+          ${a.active ? `<button data-issue-code="${escapeHtml(a.id)}" class="text-[11px] font-bold text-emerald-800 hover:text-emerald-950 rounded focus-ring min-h-[44px] px-2" aria-label="إصدار رقم دخول لـ ${escapeHtml(a.title_ar)}"><i class="fa-solid fa-key ml-1" aria-hidden="true"></i> رقم دخول</button>` : ''}
+          <button data-toggle-assessment="${escapeHtml(a.id)}" data-active="${a.active}" class="text-[11px] font-bold text-slate-700 hover:text-emerald-800 rounded focus-ring min-h-[44px] px-2">${a.active ? 'إيقاف' : 'تفعيل'}</button>
+          <button data-edit-assessment="${escapeHtml(a.id)}" class="text-[11px] font-bold text-emerald-800 rounded focus-ring min-h-[44px] px-2">تعديل</button>
         </div>
       </div>
     </div>`).join('') || '<p class="col-span-full py-10 text-center text-sm text-slate-400">لا توجد اختبارات. أضف اختباراً جديداً.</p>';
 
   document.querySelectorAll('[data-edit-assessment]').forEach(btn => {
     btn.addEventListener('click', () => openAssessmentEditor(state.assessments.find(a => a.id === btn.dataset.editAssessment)));
+  });
+  document.querySelectorAll('[data-issue-code]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const select = document.getElementById('access-code-assessment');
+      select.value = btn.dataset.issueCode;
+      await issueAccessCode(btn.dataset.issueCode);
+    });
   });
   document.querySelectorAll('[data-toggle-assessment]').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -873,7 +974,7 @@ async function authorize() {
   showApp();
 
   try {
-    await Promise.all([loadAssessments(), loadReports(), loadSettings(), loadTeam()]);
+    await Promise.all([loadAssessments(), loadReports(), loadSettings(), loadTeam(), loadAccessCodes()]);
   } catch (e) {
     toast(errorMessage(e), 'error');
   }
@@ -919,7 +1020,7 @@ function bindEvents() {
     try {
       const { data, error } = await sb.rpc('seed_demo_data');
       if (error) throw error;
-      await Promise.all([loadAssessments(), loadReports(), loadSettings(), loadTeam()]);
+      await Promise.all([loadAssessments(), loadReports(), loadSettings(), loadTeam(), loadAccessCodes()]);
       toast(`تمت إعادة ضبط ${data?.demoReports ?? 0} تقريراً تجريبياً`);
     } catch (e) {
       toast(errorMessage(e), 'error');
@@ -936,8 +1037,33 @@ function bindEvents() {
   });
 
   document.querySelectorAll('[data-tab]').forEach(btn => {
-    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    btn.addEventListener('click', () => {
+      switchTab(btn.dataset.tab);
+      if (btn.dataset.tab === 'assessments') loadAccessCodes();
+    });
   });
+
+  document.getElementById('issue-code-btn').addEventListener('click', () =>
+    issueAccessCode(document.getElementById('access-code-assessment').value));
+  document.getElementById('access-code-close-btn').addEventListener('click', closeAccessCodeModal);
+  document.getElementById('access-code-copy-btn').addEventListener('click', async () => {
+    const code = document.getElementById('access-code-value').textContent.trim();
+    try {
+      await navigator.clipboard.writeText(code);
+      toast('تم نسخ رقم الدخول');
+    } catch { toast('تعذر النسخ، يمكنك تحديد الرقم يدوياً', 'error'); }
+  });
+  setupDialog(document.getElementById('access-code-modal'), openAccessCodeModal, closeAccessCodeModal);
+  setupDialog(
+    document.getElementById('report-modal'),
+    () => {},
+    () => document.getElementById('report-modal').classList.add('hidden')
+  );
+  setupDialog(
+    document.getElementById('assessment-modal'),
+    () => {},
+    () => document.getElementById('assessment-modal').classList.add('hidden')
+  );
 
   document.getElementById('report-search').addEventListener('input', renderReports);
   document.getElementById('report-filter').addEventListener('change', renderReports);

@@ -1,22 +1,49 @@
 import { sb, escapeHtml, getSettings, setText, toast, errorMessage } from './app.js';
 
 const params = new URLSearchParams(location.search);
-const requestedSlug = params.get('assessment') || '';
+const initialCode = (params.get('code') || '').replace(/\D/g, '').slice(0, 8);
 
 const state = {
   assessment: null,
+  accessCode: initialCode,
   index: 0,
   answers: {},
   timer: null,
   submitting: false,
-  settings: {}
+  loading: false,
+  settings: {},
+  ravenLayout: null
 };
 
-const steps = ['step-intro', 'step-select', 'step-runner', 'step-done'];
+const steps = ['step-intro', 'step-runner', 'step-done'];
 
-function showStep(id) {
-  steps.forEach(s => document.getElementById(s).classList.toggle('hidden', s !== id));
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function showStep(id, focusId) {
+  steps.forEach(s => {
+    const el = document.getElementById(s);
+    if (!el) return;
+    const visible = s === id;
+    el.classList.toggle('hidden', !visible);
+    el.setAttribute('aria-hidden', visible ? 'false' : 'true');
+  });
+  window.scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' });
+  if (focusId) {
+    requestAnimationFrame(() => document.getElementById(focusId)?.focus({ preventScroll: true }));
+  }
+}
+
+function announce(message) {
+  setText('item-announce', message);
+}
+
+function setFieldError(id, message) {
+  setText(id, message);
+  const field = id === 'access-code-error' ? document.getElementById('access-code-input') : document.getElementById('consent');
+  if (field) {
+    if (message) field.setAttribute('aria-invalid', 'true');
+    else field.removeAttribute('aria-invalid');
+  }
 }
 
 function cancelAdvance() {
@@ -26,71 +53,201 @@ function cancelAdvance() {
 
 function scheduleAdvance() {
   cancelAdvance();
+  if (state.index >= totalItems() - 1) return; // never auto-submit the final answer
+  const delay = reducedMotion() ? 900 : 500;
   state.timer = setTimeout(() => {
     state.timer = null;
-    nextItem();
-  }, 220);
+    nextItem(true);
+  }, delay);
 }
 
 function totalItems() {
   return state.assessment?.items?.length || 0;
 }
 
-function renderCurrent() {
+function getRavenLayout(item) {
+  const match = (item.imageUrl || '').match(/raven\/([A-E]\d{2})/);
+  return match && state.ravenLayout ? state.ravenLayout[match[1]] : null;
+}
+
+// Crops the original scan with CSS only: no figure is redrawn or recoloured.
+function cropStyle(imageUrl, rect) {
+  const [x, y, w, h] = rect;
+  const px = (100 * x / (1 - w)).toFixed(3);
+  const py = (100 * y / (1 - h)).toFixed(3);
+  return `background-image:url('${escapeHtml(imageUrl)}');background-size:${(100 / w).toFixed(3)}% ${(100 / h).toFixed(3)}%;background-position:${px}% ${py}%;background-repeat:no-repeat;background-color:#fff;`;
+}
+
+function renderRaven(item, selected, focusOption) {
+  const layout = getRavenLayout(item);
+  const selectedIndex = selected == null ? -1 : Number(selected) - 1;
+  const dropRect = layout.missing;
+  const dropStyle = [
+    `left:${(dropRect[0] * 100).toFixed(3)}%`,
+    `top:${(dropRect[1] * 100).toFixed(3)}%`,
+    `width:${(dropRect[2] * 100).toFixed(3)}%`,
+    `height:${(dropRect[3] * 100).toFixed(3)}%`,
+    selectedIndex >= 0 && layout.options[selectedIndex] ? cropStyle(item.imageUrl, layout.options[selectedIndex]) : ''
+  ].filter(Boolean).join(';');
+
+  document.getElementById('item-prompt').innerHTML = '';
+  document.getElementById('item-figure').innerHTML = `
+    <div class="mb-4 flex justify-center rounded-xl bg-white border border-slate-300 p-2 sm:p-3">
+      <div class="raven-matrix">
+        <img src="${escapeHtml(item.imageUrl)}" alt="مصفوفة بصرية" draggable="false" class="max-h-[58vh] w-auto max-w-full object-contain" />
+        <div id="raven-drop" class="raven-drop" role="button" tabindex="0"
+          aria-label="المكان الناقص، اسحب الخيار إليه أو اختر خياراً من القائمة"
+          data-filled="${selectedIndex >= 0 ? 'true' : 'false'}" style="${dropStyle}">
+          ${selectedIndex >= 0 ? '' : '<span class="px-1 text-center text-[10px] font-extrabold text-amber-900">المكان الناقص</span>'}
+        </div>
+      </div>
+    </div>`;
+
+  const container = document.getElementById('options-container');
+  container.className = 'raven-options';
+  container.setAttribute('aria-label', 'خيارات إكمال المصفوفة');
+  container.innerHTML = layout.options.map((rect, index) => `
+    <button type="button" role="radio" aria-checked="${index === selectedIndex}"
+      tabindex="${index === selectedIndex || (selectedIndex < 0 && index === 0) ? '0' : '-1'}"
+      draggable="true" data-score="${index + 1}" data-opt-index="${index}"
+      class="raven-option" aria-label="الخيار ${index + 1}">
+      <span class="opt-number" aria-hidden="true">${index + 1}</span>
+      <span class="raven-option-image" style="${cropStyle(item.imageUrl, rect)}" aria-hidden="true"></span>
+    </button>`).join('');
+
+  const buttons = [...container.querySelectorAll('[data-score]')];
+  buttons.forEach((btn, index) => {
+    btn.addEventListener('click', () => selectOption(index));
+    btn.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', String(index));
+      e.dataTransfer.effectAllowed = 'copy';
+      btn.dataset.dragging = 'true';
+    });
+    btn.addEventListener('dragend', () => { btn.dataset.dragging = 'false'; });
+    btn.addEventListener('keydown', e => {
+      const keys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+      if (!keys.includes(e.key)) return;
+      e.preventDefault();
+      const dir = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : -1;
+      const next = (index + dir + buttons.length) % buttons.length;
+      buttons[next].focus();
+      selectOption(next, false);
+    });
+  });
+
+  const drop = document.getElementById('raven-drop');
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.dataset.over = 'true'; });
+  drop.addEventListener('dragleave', () => { delete drop.dataset.over; });
+  drop.addEventListener('drop', e => {
+    e.preventDefault();
+    delete drop.dataset.over;
+    const index = Number(e.dataTransfer.getData('text/plain'));
+    if (Number.isInteger(index)) selectOption(index);
+  });
+  drop.addEventListener('click', () => (buttons[selectedIndex] || buttons[0])?.focus());
+  drop.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      (buttons[selectedIndex] || buttons[0])?.focus();
+    }
+  });
+
+  setText('auto-advance-hint', 'اسحب الخيار إلى المكان الناقص، أو اضغط على الخيار وانتقل تلقائياً للبند التالي. يمكنك الرجوع لتعديل إجابتك.');
+  if (focusOption) (buttons[selectedIndex] || buttons[0])?.focus({ preventScroll: true });
+}
+
+function renderCurrent(focusOption = false) {
+  if (!state.assessment) return;
   const items = state.assessment.items;
   const item = items[state.index];
   const answered = Object.keys(state.answers).length;
   const pct = Math.round((answered / items.length) * 100);
 
-  document.getElementById('item-counter').textContent = `البند ${state.index + 1} من ${items.length}`;
-  document.getElementById('q-number').textContent = `البند رقم (${item.position})`;
-  document.getElementById('progress-percent').textContent = `${pct}%`;
+  setText('item-counter', `البند ${state.index + 1} من ${items.length}`);
+  setText('q-number', `البند رقم (${item.position})`);
+  setText('progress-percent', `${pct}%`);
   document.getElementById('progress-bar').style.width = `${pct}%`;
+  document.getElementById('progress-track').setAttribute('aria-valuenow', String(pct));
   document.getElementById('prev-btn').disabled = state.index === 0;
+  document.getElementById('runner-submit-btn').setAttribute(
+    'aria-label', `تأكيد الإجابات وإنهاء الجلسة، أُجيب على ${answered} من ${items.length}`
+  );
 
   const selected = state.answers[item.position]?.[0];
-  const container = document.getElementById('options-container');
-  const prompt = (item.textAr || item.textEn) ? `
-    <div class="mb-4 rounded-xl bg-white border border-slate-200 p-4">
-      <p class="text-sm sm:text-base font-bold text-slate-800 leading-relaxed">${escapeHtml(item.textAr || '')}</p>
-      ${item.textEn ? `<p class="font-en text-[11px] text-slate-400 mt-1.5">${escapeHtml(item.textEn)}</p>` : ''}
-    </div>` : '';
-  const figure = item.imageUrl ? `
-    <div class="mb-4 flex justify-center rounded-xl bg-white border border-slate-200 p-3">
-      <img src="${escapeHtml(item.imageUrl)}" alt="محتوى البند" class="max-h-[58vh] w-auto max-w-full object-contain" />
-    </div>` : '';
-  container.innerHTML = `${prompt}${figure}` + item.options.map((opt, optIndex) => {
-    const isNumericLabel = /^\d+$/.test(String(opt.ar || '').trim());
-    const badge = isNumericLabel ? '' : `<span class="opt-number">${optIndex + 1}</span>`;
-    return `
-    <button type="button" class="opt-card w-full text-right rounded-xl border px-4 py-3.5 flex items-start gap-3 ${
-      opt.score === selected ? 'selected border-emerald-700' : 'border-slate-200 bg-white'
-    }" data-score="${escapeHtml(opt.score)}">
-      ${badge}
-      <span class="flex-1 flex flex-col gap-1">
-        <span class="text-sm sm:text-base font-semibold text-slate-800 leading-relaxed">${escapeHtml(opt.ar)}</span>
-        <span class="font-en text-[11px] text-slate-400">${escapeHtml(opt.en)}</span>
-      </span>
-    </button>`;
-  }).join('');
+  const raven = getRavenLayout(item);
+  let buttons = [];
 
-  container.querySelectorAll('[data-score]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (state.submitting) return;
-      state.answers[item.position] = [Number(btn.dataset.score)];
-      document.getElementById('submit-error').classList.add('hidden');
-      renderCurrent();
-      scheduleAdvance();
+  if (raven) {
+    renderRaven(item, selected, focusOption);
+  } else {
+    setText('auto-advance-hint', 'عند الاختيار ستنتقل تلقائياً إلى البند التالي. يمكنك الرجوع لتعديل إجابتك، أو استخدام زر الإنهاء في أي وقت.');
+    const container = document.getElementById('options-container');
+    container.className = 'space-y-3';
+    container.setAttribute('aria-label', 'خيارات الإجابة');
+    document.getElementById('item-prompt').innerHTML = (item.textAr || item.textEn) ? `
+      <div class="mb-4 rounded-xl bg-white border border-slate-300 p-4">
+        <p class="text-sm sm:text-base font-bold text-slate-800 leading-relaxed">${escapeHtml(item.textAr || '')}</p>
+        ${item.textEn ? `<p class="font-en text-xs text-slate-600 mt-1.5">${escapeHtml(item.textEn)}</p>` : ''}
+      </div>` : '';
+
+    document.getElementById('item-figure').innerHTML = item.imageUrl ? `
+      <div class="mb-4 flex justify-center rounded-xl bg-white border border-slate-300 p-3">
+        <img src="${escapeHtml(item.imageUrl)}" alt="محتوى البند" class="max-h-[55vh] w-auto max-w-full object-contain" />
+      </div>` : '';
+
+    container.innerHTML = item.options.map((opt, optIndex) => {
+      const isNumericLabel = /^\d+$/.test(String(opt.ar || '').trim());
+      const badge = isNumericLabel ? '' : `<span class="opt-number" aria-hidden="true">${optIndex + 1}</span>`;
+      const isSelected = opt.score === selected;
+      return `
+      <button type="button" role="radio" aria-checked="${isSelected}" tabindex="${isSelected || (!selected && optIndex === 0) ? '0' : '-1'}"
+        class="opt-card w-full text-right rounded-xl border px-4 py-3.5 flex items-start gap-3 min-h-[52px] ${
+          isSelected ? 'selected border-emerald-700' : 'border-slate-300 bg-white'
+        }" data-score="${escapeHtml(opt.score)}" data-opt-index="${optIndex}">
+        ${badge}
+        <span class="flex-1 flex flex-col gap-1">
+          <span class="text-sm sm:text-base font-semibold text-slate-800 leading-relaxed">${escapeHtml(opt.ar)}</span>
+          ${opt.en ? `<span class="font-en text-xs text-slate-600">${escapeHtml(opt.en)}</span>` : ''}
+        </span>
+      </button>`;
+    }).join('');
+
+    buttons = [...container.querySelectorAll('[data-score]')];
+    buttons.forEach((btn, idx) => {
+      btn.addEventListener('click', () => selectOption(idx));
+      btn.addEventListener('keydown', e => {
+        const keys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+        if (!keys.includes(e.key)) return;
+        e.preventDefault();
+        const dir = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : -1;
+        const next = (idx + dir + buttons.length) % buttons.length;
+        buttons[next].focus();
+        selectOption(next, false);
+      });
     });
-  });
+
+    if (focusOption) (buttons.find(b => b.getAttribute('aria-checked') === 'true') || buttons[0])?.focus({ preventScroll: true });
+  }
+
+  announce(`البند ${state.index + 1} من ${items.length}. ${item.textAr || ''}`);
 }
 
-function nextItem() {
+function selectOption(index, moveFocus = true) {
+  if (state.submitting) return;
+  const item = state.assessment.items[state.index];
+  const opt = item.options[index];
+  if (!opt) return;
+  cancelAdvance();
+  state.answers[item.position] = [Number(opt.score)];
+  document.getElementById('submit-error').classList.add('hidden');
+  renderCurrent(moveFocus);
+  scheduleAdvance();
+}
+
+function nextItem(focus = false) {
   if (state.index < totalItems() - 1) {
     state.index += 1;
-    renderCurrent();
-  } else {
-    submitSession();
+    renderCurrent(focus);
   }
 }
 
@@ -98,7 +255,7 @@ function prevItem() {
   cancelAdvance();
   if (state.index > 0) {
     state.index -= 1;
-    renderCurrent();
+    renderCurrent(true);
   }
 }
 
@@ -107,29 +264,32 @@ function startRunner(assessment) {
   state.index = 0;
   state.answers = {};
   state.submitting = false;
-  document.getElementById('runner-instructions').textContent = assessment.instructionsAr || 'اقرأ العبارات واختر الأقرب إلى شعورك.';
+  setText('runner-instructions', assessment.instructionsAr || 'اقرأ العبارات واختر الأقرب إلى شعورك.');
   document.getElementById('submit-error').classList.add('hidden');
-  showStep('step-runner');
-  renderCurrent();
+  showStep('step-runner', 'options-container');
+  renderCurrent(true);
 }
 
 async function submitSession() {
-  if (state.submitting) return;
+  if (state.submitting || !state.assessment) return;
+  cancelAdvance();
   const answers = Object.entries(state.answers)
     .map(([position, scores]) => ({ position: Number(position), scores }))
     .sort((a, b) => a.position - b.position);
 
   if (answers.length !== totalItems()) {
-    showSubmitError('يرجى الإجابة على جميع البنود قبل الإنهاء.');
+    const missing = totalItems() - answers.length;
+    showSubmitError(`يرجى الإجابة على جميع البنود قبل الإنهاء. متبقٍ ${missing} بنداً.`);
     return;
   }
 
   state.submitting = true;
   document.getElementById('submit-error').classList.add('hidden');
-  const startBtn = document.getElementById('start-btn');
-  const originalText = startBtn.innerHTML;
-  startBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جارٍ التسجيل…';
-  startBtn.disabled = true;
+  const submitBtn = document.getElementById('runner-submit-btn');
+  submitBtn.setAttribute('aria-busy', 'true');
+  submitBtn.disabled = true;
+  const original = submitBtn.innerHTML;
+  submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> جارٍ التسجيل…';
 
   try {
     const { data, error } = await sb.rpc('submit_assessment', {
@@ -139,43 +299,107 @@ async function submitSession() {
       p_gender: document.getElementById('patient-gender').value,
       p_examiner: document.getElementById('examiner-name').value,
       p_notes: '',
-      p_answers: answers
+      p_answers: answers,
+      p_access_code: state.accessCode
     });
     if (error) throw error;
     if (!data?.ok) throw new Error('تعذر تسجيل الاستجابات');
 
     setText('session-code', data.code);
-    showStep('step-done');
+    showStep('step-done', 'thanks-title');
   } catch (e) {
     showSubmitError(errorMessage(e));
-    state.index = totalItems() - 1;
-    renderCurrent();
   } finally {
     state.submitting = false;
-    startBtn.innerHTML = originalText;
-    startBtn.disabled = false;
+    submitBtn.removeAttribute('aria-busy');
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = original;
   }
 }
 
 function showSubmitError(message) {
   setText('submit-error-text', message);
   document.getElementById('submit-error').classList.remove('hidden');
+  const btn = document.getElementById('retry-submit-btn');
+  btn?.focus({ preventScroll: true });
 }
 
-async function chooseAssessment(slug) {
+async function startWithCode(code) {
+  if (state.loading) return;
+  const cleaned = String(code || '').replace(/\D/g, '').slice(0, 8);
+  setFieldError('access-code-error', '');
+  document.getElementById('selected-assessment-banner').classList.add('hidden');
+
+  if (!/^\d{8}$/.test(cleaned)) {
+    setFieldError('access-code-error', 'أدخل رقم الدخول المكوّن من 8 أرقام.');
+    document.getElementById('access-code-input').focus();
+    return;
+  }
+  if (!document.getElementById('consent').checked) {
+    setFieldError('consent-error', 'يرجى الموافقة قبل البدء.');
+    document.getElementById('consent').focus();
+    return;
+  }
+
+  state.loading = true;
+  const btn = document.getElementById('start-btn');
+  btn.setAttribute('aria-busy', 'true');
+  btn.disabled = true;
+  const original = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> جارٍ التحقق…';
   try {
-    const { data, error } = await sb.rpc('get_assessment_public', { p_slug: slug });
+    const { data, error } = await sb.rpc('get_assessment_by_access_code', { p_code: cleaned });
     if (error) throw error;
-    if (!data) throw new Error('هذه الأداة غير متاحة حالياً');
+    if (!data) throw new Error('رقم الدخول غير صالح أو منتهي الصلاحية');
+    state.accessCode = cleaned;
+    setText('selected-assessment-name', data.titleAr || '');
+    document.getElementById('selected-assessment-banner').classList.remove('hidden');
     startRunner(data);
   } catch (e) {
-    toast(errorMessage(e), 'error');
+    setFieldError('access-code-error', errorMessage(e));
+    document.getElementById('access-code-input').focus();
+  } finally {
+    state.loading = false;
+    btn.removeAttribute('aria-busy');
+    btn.disabled = false;
+    btn.innerHTML = original;
   }
 }
 
 async function init() {
   document.getElementById('prev-btn').addEventListener('click', prevItem);
-  window.__retrySubmit = submitSession;
+  document.getElementById('runner-submit-btn').addEventListener('click', submitSession);
+  document.getElementById('retry-submit-btn').addEventListener('click', submitSession);
+  document.getElementById('intro-form').addEventListener('submit', e => {
+    e.preventDefault();
+    startWithCode(document.getElementById('access-code-input').value);
+  });
+  document.getElementById('consent').addEventListener('change', () => setFieldError('consent-error', ''));
+  document.getElementById('access-code-input').addEventListener('input', e => {
+    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 8);
+    setFieldError('access-code-error', '');
+  });
+  document.getElementById('finish-btn').addEventListener('click', () => window.close());
+  document.getElementById('copy-session-btn').addEventListener('click', async () => {
+    const code = document.getElementById('session-code').textContent;
+    try {
+      await navigator.clipboard.writeText(code);
+      toast('تم نسخ رقم الجلسة');
+    } catch {
+      toast('تعذر النسخ، يمكنك تحديد الرقم يدوياً', 'error');
+    }
+  });
+
+  if (initialCode) {
+    document.getElementById('access-code-input').value = initialCode;
+  }
+
+  try {
+    const response = await fetch('assets/raven/raven_layout.json');
+    if (response.ok) state.ravenLayout = await response.json();
+  } catch (e) {
+    console.warn('Raven layout load failed', e);
+  }
 
   try {
     state.settings = await getSettings();
@@ -188,48 +412,7 @@ async function init() {
     console.warn('Settings load failed', e);
   }
 
-  const { data: catalog, error: catalogError } = await sb.rpc('get_public_catalog');
-  if (catalogError) {
-    toast(errorMessage(catalogError), 'error');
-    return;
-  }
-
-  if (requestedSlug) {
-    const match = (catalog || []).find(a => a.slug === requestedSlug);
-    if (match) {
-      document.getElementById('selected-assessment-banner').classList.remove('hidden');
-      setText('selected-assessment-name', match.titleAr);
-    }
-  }
-
-  document.getElementById('start-btn').addEventListener('click', async () => {
-    if (!document.getElementById('consent').checked) {
-      toast('يرجى الموافقة قبل البدء', 'error');
-      return;
-    }
-    if (requestedSlug) {
-      await chooseAssessment(requestedSlug);
-      return;
-    }
-
-    const list = document.getElementById('select-list');
-    if (!catalog || catalog.length === 0) {
-      list.innerHTML = '<p class="text-sm text-slate-500">لا توجد أدوات متاحة حالياً.</p>';
-    } else {
-      list.innerHTML = catalog.map(a => `
-        <button type="button" data-slug="${escapeHtml(a.slug)}" class="card-hover text-right rounded-2xl border border-slate-200 bg-white p-5">
-          <h3 class="text-base font-extrabold text-slate-900 mb-1">${escapeHtml(a.titleAr)}</h3>
-          <p class="font-en text-[11px] font-bold text-emerald-700 mb-2">${escapeHtml(a.titleEn)}</p>
-          <p class="text-xs text-slate-500 mb-4">${escapeHtml(a.descriptionAr || '')}</p>
-          <span class="text-xs font-extrabold text-emerald-700">ابدأ <i class="fa-solid fa-arrow-left"></i></span>
-        </button>
-      `).join('');
-      list.querySelectorAll('[data-slug]').forEach(btn => {
-        btn.addEventListener('click', () => chooseAssessment(btn.dataset.slug));
-      });
-    }
-    showStep('step-select');
-  });
+  document.getElementById('access-code-input').focus({ preventScroll: true });
 }
 
 init().catch(e => toast(errorMessage(e), 'error'));

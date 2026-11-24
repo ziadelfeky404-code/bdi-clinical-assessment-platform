@@ -13,8 +13,8 @@ begin
     version, active, sort_order, cutoffs, critical_rules, scale_meta
   ) values (
     'mmpi-566',
-    'جرد مينيسوتا متعدد الأوجه للشخصية (566 مفردة)',
-    'Minnesota Multiphasic Personality Inventory (Form R, 566 items)',
+    'اختبار الشخصية المتعدد الأوجه (MMPI)',
+    'Minnesota Multiphasic Personality Inventory (MMPI)',
     'استبيان سمات الشخصية',
     'Personality inventory',
     'clinical', 'clinical',

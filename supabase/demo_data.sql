@@ -272,6 +272,7 @@ begin
   return jsonb_build_object('ok', true, 'demoReports', v_count);
 end $$;
 
+revoke execute on function public.seed_demo_data() from public, anon;
 grant execute on function public.seed_demo_data() to authenticated;
 
 select public.seed_demo_data();

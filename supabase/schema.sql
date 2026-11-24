@@ -45,6 +45,19 @@ create table if not exists public.assessments (
   updated_at timestamptz not null default now()
 );
 
+-- Single-use numeric codes issued by specialists; only hashes are stored.
+create table if not exists public.access_codes (
+  id uuid primary key default gen_random_uuid(),
+  assessment_id uuid not null references public.assessments(id) on delete restrict,
+  code_hash text not null unique,
+  created_by uuid references public.specialists(id) on delete set null,
+  expires_at timestamptz not null,
+  used_at timestamptz,
+  revoked boolean not null default false,
+  attempts integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.assessment_items (
   id uuid primary key default gen_random_uuid(),
   assessment_id uuid not null references public.assessments(id) on delete cascade,
@@ -113,6 +126,8 @@ create table if not exists public.reports (
   created_at timestamptz not null default now()
 );
 
+create index if not exists idx_access_codes_hash on public.access_codes(code_hash);
+create index if not exists idx_access_codes_lifecycle on public.access_codes(assessment_id, used_at, expires_at);
 create index if not exists idx_items_assessment on public.assessment_items(assessment_id, position);
 create index if not exists idx_assessments_suite on public.assessments(suite);
 create index if not exists idx_reports_created on public.reports(created_at desc);
@@ -208,6 +223,54 @@ language sql stable security definer set search_path = public as $$
   where a.slug = p_slug and a.active = true;
 $$;
 
+-- Code-based lookup: validates without consuming; neutral fields only.
+create or replace function public.get_assessment_by_access_code(p_code text) returns jsonb
+language plpgsql security definer set search_path = public, extensions as $$
+declare
+  v_hash text := encode(extensions.digest(coalesce(trim(p_code), ''), 'sha256'), 'hex');
+  v_code public.access_codes%rowtype;
+  v_result jsonb;
+begin
+  select * into v_code from public.access_codes where code_hash = v_hash;
+  if not found or v_code.used_at is not null or v_code.revoked
+     or v_code.expires_at <= now() or v_code.attempts >= 10 then
+    if found and v_code.attempts < 10 then
+      update public.access_codes set attempts = attempts + 1 where id = v_code.id;
+    end if;
+    raise exception 'رقم الدخول غير صالح أو منتهي الصلاحية';
+  end if;
+
+  select jsonb_build_object(
+    'slug', a.slug,
+    'titleAr', coalesce(nullif(a.patient_label_ar, ''), a.title_ar),
+    'titleEn', coalesce(nullif(a.patient_label_en, ''), a.title_en),
+    'descriptionAr', a.description_ar,
+    'descriptionEn', a.description_en,
+    'instructionsAr', a.instructions_ar,
+    'instructionsEn', a.instructions_en,
+    'suite', a.suite,
+    'version', a.version,
+    'items', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'position', i.position,
+        'textAr', i.text_ar,
+        'textEn', i.text_en,
+        'imageUrl', i.image_url,
+        'options', i.options
+      ) order by i.position)
+      from public.assessment_items i
+      where i.assessment_id = a.id
+    ), '[]'::jsonb)
+  ) into v_result
+  from public.assessments a
+  where a.id = v_code.assessment_id and a.active = true;
+
+  if v_result is null then
+    raise exception 'رقم الدخول غير صالح أو منتهي الصلاحية';
+  end if;
+  return v_result;
+end $$;
+
 create or replace function public.get_public_settings() returns jsonb
 language sql stable security definer set search_path = public as $$
   select coalesce(jsonb_object_agg(s.key, s.value), '{}'::jsonb)
@@ -219,7 +282,8 @@ $$;
 -- 5. SERVER-SIDE SUBMISSION & SCORING (patient never receives a score)
 -- =============================================================================
 
-create or replace function public.submit_assessment(
+-- Internal scoring implementation. Public entry point is the wrapper below.
+create or replace function public.submit_assessment_scoring(
   p_slug text,
   p_patient_name text,
   p_age integer,
@@ -531,6 +595,66 @@ begin
   );
 end $$;
 
+-- Public submission: anon callers must provide a valid single-use code.
+-- Specialists may seed demo data by slug (their session authenticates the call).
+create or replace function public.submit_assessment(
+  p_slug text,
+  p_patient_name text,
+  p_age integer,
+  p_gender text,
+  p_examiner text,
+  p_notes text,
+  p_answers jsonb,
+  p_access_code text default null
+) returns jsonb
+language plpgsql security definer set search_path = public, extensions as $$
+declare
+  v_code public.access_codes%rowtype;
+  v_hash text;
+  v_slug text := p_slug;
+  v_result jsonb;
+  v_title text;
+  v_has_code boolean := coalesce(trim(p_access_code), '') <> '';
+begin
+  if v_has_code then
+    v_hash := encode(extensions.digest(trim(p_access_code), 'sha256'), 'hex');
+    select * into v_code
+    from public.access_codes where code_hash = v_hash
+    for update skip locked;
+
+    if not found or v_code.used_at is not null or v_code.revoked
+       or v_code.expires_at <= now() or v_code.attempts >= 10 then
+      if found and v_code.attempts < 10 then
+        update public.access_codes set attempts = attempts + 1 where id = v_code.id;
+      end if;
+      raise exception 'رقم الدخول غير صالح أو منتهي الصلاحية';
+    end if;
+
+    select a.slug into v_slug
+    from public.assessments a where a.id = v_code.assessment_id and a.active = true;
+    if not found then
+      raise exception 'رقم الدخول غير صالح أو منتهي الصلاحية';
+    end if;
+  elsif not public.is_specialist() then
+    raise exception 'رقم الدخول مطلوب للبدء';
+  end if;
+
+  v_result := public.submit_assessment_scoring(
+    v_slug, p_patient_name, p_age, p_gender, p_examiner, p_notes, p_answers
+  );
+
+  if v_has_code then
+    update public.access_codes set used_at = now()
+    where id = v_code.id and used_at is null;
+
+    select coalesce(nullif(a.patient_label_ar, ''), a.title_ar) into v_title
+    from public.assessments a where a.slug = v_slug;
+    v_result := v_result || jsonb_build_object('assessmentTitleAr', coalesce(v_title, ''));
+  end if;
+
+  return v_result;
+end $$;
+
 -- Admin-only account creation (so the team can add specialists from the UI)
 create or replace function public.create_specialist_account(
   p_email text, p_password text, p_full_name text, p_role text default 'specialist'
@@ -609,6 +733,74 @@ begin
   return jsonb_build_object('ok', true, 'email', v_email, 'fullName', v_name);
 end $$;
 
+-- Specialist-only issuance. The plain code is returned exactly once and never stored.
+create or replace function public.issue_assessment_access_code(
+  p_assessment_id uuid,
+  p_expires_in_hours integer default 24
+) returns jsonb
+language plpgsql security definer set search_path = public, extensions as $$
+declare
+  v_code text;
+  v_hash text;
+  v_title text;
+  v_expires timestamptz;
+begin
+  if not public.is_specialist() then
+    raise exception 'غير مسموح بإصدار رموز الدخول';
+  end if;
+
+  select a.title_ar into v_title
+  from public.assessments a where a.id = p_assessment_id and a.active = true;
+  if not found then
+    raise exception 'الاختبار غير متاح حالياً';
+  end if;
+
+  v_expires := now() + make_interval(hours => least(greatest(coalesce(p_expires_in_hours, 24), 1), 168));
+
+  loop
+    v_code := lpad(floor(random() * 100000000)::text, 8, '0');
+    v_hash := encode(extensions.digest(v_code, 'sha256'), 'hex');
+    exit when not exists (select 1 from public.access_codes where code_hash = v_hash);
+  end loop;
+
+  insert into public.access_codes (assessment_id, code_hash, created_by, expires_at)
+  values (p_assessment_id, v_hash, auth.uid(), v_expires);
+
+  return jsonb_build_object(
+    'ok', true,
+    'code', v_code,
+    'expiresAt', v_expires,
+    'assessmentTitleAr', v_title
+  );
+end $$;
+
+create or replace function public.list_access_codes() returns jsonb
+language sql stable security definer set search_path = public as $$
+  select coalesce(jsonb_agg(jsonb_build_object(
+    'id', c.id,
+    'assessmentTitleAr', a.title_ar,
+    'maskedCode', '••••' || right(c.code_hash, 2),
+    'createdAt', c.created_at,
+    'expiresAt', c.expires_at,
+    'usedAt', c.used_at,
+    'revoked', c.revoked,
+    'attempts', c.attempts
+  ) order by c.created_at desc), '[]'::jsonb)
+  from public.access_codes c
+  join public.assessments a on a.id = c.assessment_id
+  where public.is_specialist();
+$$;
+
+create or replace function public.revoke_access_code(p_id uuid) returns jsonb
+language plpgsql security definer set search_path = public as $$
+begin
+  if not public.is_specialist() then
+    raise exception 'غير مسموح بإدارة رموز الدخول';
+  end if;
+  update public.access_codes set revoked = true where id = p_id and used_at is null;
+  return jsonb_build_object('ok', true);
+end $$;
+
 -- =============================================================================
 -- 6. ROW LEVEL SECURITY
 -- =============================================================================
@@ -620,6 +812,7 @@ alter table public.assessment_items enable row level security;
 alter table public.sessions enable row level security;
 alter table public.answers enable row level security;
 alter table public.reports enable row level security;
+alter table public.access_codes enable row level security;
 
 drop policy if exists "specialists manage specialists" on public.specialists;
 create policy "specialists view specialists" on public.specialists
@@ -659,15 +852,34 @@ drop policy if exists "specialists manage reports" on public.reports;
 create policy "specialists manage reports" on public.reports
 for all to authenticated using (public.is_specialist()) with check (public.is_specialist());
 
+drop policy if exists access_codes_specialist_all on public.access_codes;
+create policy access_codes_specialist_all on public.access_codes
+for all to authenticated using (public.is_specialist()) with check (public.is_specialist());
+
 grant usage on schema public to anon, authenticated;
 grant all on all tables in schema public to authenticated;
 grant select on public.app_settings to anon;
-grant execute on function public.is_specialist() to anon, authenticated;
+
+-- Postgres grants EXECUTE to PUBLIC by default; close every internal entry point.
+revoke execute on function public.submit_assessment_scoring(text, text, integer, text, text, text, jsonb) from public, anon, authenticated;
+revoke execute on function public.get_public_catalog() from public, anon;
+revoke execute on function public.get_assessment_public(text) from public, anon;
+revoke execute on function public.issue_assessment_access_code(uuid, integer) from public, anon;
+revoke execute on function public.list_access_codes() from public, anon;
+revoke execute on function public.revoke_access_code(uuid) from public, anon;
+revoke execute on function public.create_specialist_account(text, text, text, text) from public, anon;
+revoke execute on function public.delete_specialist_account(uuid) from public, anon;
+
+grant execute on function public.is_specialist() to authenticated;
 grant execute on function public.is_admin() to authenticated;
-grant execute on function public.get_public_catalog() to anon, authenticated;
-grant execute on function public.get_assessment_public(text) to anon, authenticated;
+grant execute on function public.get_public_catalog() to authenticated;
+grant execute on function public.get_assessment_public(text) to authenticated;
 grant execute on function public.get_public_settings() to anon, authenticated;
-grant execute on function public.submit_assessment(text, text, integer, text, text, text, jsonb) to anon, authenticated;
+grant execute on function public.get_assessment_by_access_code(text) to anon, authenticated;
+grant execute on function public.submit_assessment(text, text, integer, text, text, text, jsonb, text) to anon, authenticated;
+grant execute on function public.issue_assessment_access_code(uuid, integer) to authenticated;
+grant execute on function public.list_access_codes() to authenticated;
+grant execute on function public.revoke_access_code(uuid) to authenticated;
 grant execute on function public.create_specialist_account(text, text, text, text) to authenticated;
 grant execute on function public.delete_specialist_account(uuid) to authenticated;
 

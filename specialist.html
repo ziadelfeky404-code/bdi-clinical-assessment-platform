@@ -2,7 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#065f46" />
   <title>لوحة المتخصص | جامعة المنوفية</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,6 +13,8 @@
   <link rel="stylesheet" href="assets/styles.css" />
 </head>
 <body class="min-h-screen bg-slate-50">
+
+  <a href="#app-view" class="skip-link">تخطَّ إلى المحتوى الرئيسي</a>
 
   <header class="no-print bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
@@ -47,7 +50,7 @@
           <label class="field-label" for="login-password">كلمة المرور</label>
           <input id="login-password" type="password" class="field" autocomplete="current-password" required placeholder="••••••••" />
         </div>
-        <p id="login-error" class="hidden text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2"></p>
+        <p id="login-error" class="hidden text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2" role="alert" aria-live="assertive"></p>
         <button type="submit" class="btn-primary w-full">دخول</button>
       </form>
 
@@ -68,10 +71,10 @@
   </section>
 
   <!-- APP -->
-  <div id="app-view" class="hidden max-w-7xl mx-auto px-4 py-7 grid lg:grid-cols-[230px_1fr] gap-6">
+  <div id="app-view" tabindex="-1" class="hidden max-w-7xl mx-auto px-4 py-7 grid lg:grid-cols-[230px_1fr] gap-6 focus:outline-none">
 
     <aside class="no-print">
-      <nav class="bg-white rounded-2xl border border-slate-200 p-2 sticky top-20 space-y-1">
+      <nav role="tablist" aria-label="أقسام لوحة المتخصص" class="bg-white rounded-2xl border border-slate-200 p-2 sticky top-20 space-y-1">
         <button data-tab="dashboard" class="nav-link active w-full text-right rounded-xl px-3.5 py-2.5 text-sm font-bold flex items-center gap-2.5">
           <i class="fa-solid fa-gauge-high w-5 text-center"></i> نظرة عامة
         </button>
@@ -146,6 +149,7 @@
         <div class="bg-white rounded-2xl border border-slate-200 p-6">
           <div class="flex flex-wrap items-center gap-3 mb-5">
             <h3 class="font-extrabold text-slate-900 ml-auto">أرشيف التقارير</h3>
+            <label for="report-search" class="sr-only">ابحث بالاسم أو رقم الجلسة</label>
             <input id="report-search" class="field !w-auto flex-1 min-w-[180px]" placeholder="ابحث بالاسم أو رقم الجلسة" />
             <select id="report-filter" class="field !w-auto min-w-[160px]">
               <option value="all">كل الاختبارات</option>
@@ -166,6 +170,21 @@
             <button id="add-assessment-btn" class="btn-primary flex items-center gap-2"><i class="fa-solid fa-plus"></i> اختبار جديد</button>
           </div>
           <div id="assessments-list" class="grid md:grid-cols-2 gap-4"></div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-emerald-200 p-6 mt-5">
+          <div class="flex flex-wrap items-end gap-4">
+            <div class="flex-1 min-w-[220px]">
+              <label class="field-label" for="access-code-assessment">إصدار رقم دخول للمريض</label>
+              <select id="access-code-assessment" class="field"></select>
+              <p class="text-xs text-slate-700 mt-2">الرقم مكوّن من 8 أرقام، صالح لمرة واحدة ولمدة 24 ساعة. يظهر هنا فقط، ثم ترسله أنت للمريض.</p>
+            </div>
+            <button id="issue-code-btn" type="button" class="btn-primary flex items-center gap-2 min-h-[48px]">
+              <i class="fa-solid fa-key" aria-hidden="true"></i> إنشاء رقم دخول
+            </button>
+          </div>
+          <p id="access-code-status" class="mt-4 text-xs font-bold text-rose-700" role="alert" aria-live="assertive"></p>
+          <div id="access-code-list" class="mt-5 overflow-x-auto"></div>
         </div>
       </section>
 
@@ -220,12 +239,31 @@
     </main>
   </div>
 
+  <!-- ACCESS CODE MODAL -->
+  <div id="access-code-modal" class="no-print hidden fixed inset-0 z-[60] modal-backdrop flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="access-code-modal-title">
+    <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl p-6 sm:p-8 text-center">
+      <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-xl" aria-hidden="true">
+        <i class="fa-solid fa-key"></i>
+      </div>
+      <h3 id="access-code-modal-title" class="text-lg font-extrabold text-slate-900 mb-2">رقم الدخول للمريض</h3>
+      <p id="access-code-expires" class="text-xs text-slate-700 mb-5"></p>
+      <p id="access-code-value" class="code-value bg-emerald-50 border-2 border-emerald-200 rounded-xl py-4 px-3 text-emerald-900 mb-2" tabindex="0" aria-label="رقم الدخول"></p>
+      <p class="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-5">
+        انسخ الرقم وأرسله للمريض. لا يمكن عرضه مرة أخرى بعد إغلاق هذه النافذة.
+      </p>
+      <div class="flex flex-wrap justify-center gap-2">
+        <button id="access-code-copy-btn" type="button" class="btn-primary flex items-center gap-2"><i class="fa-solid fa-copy" aria-hidden="true"></i> نسخ الرقم</button>
+        <button id="access-code-close-btn" type="button" class="btn-ghost">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
   <!-- REPORT MODAL -->
-  <div id="report-modal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-start justify-center p-3 sm:p-6 overflow-y-auto">
+  <div id="report-modal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-start justify-center p-3 sm:p-6 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="report-modal-title">
     <div class="print-full bg-white rounded-2xl w-full max-w-4xl my-2 shadow-2xl">
       <div class="no-print flex items-center justify-between gap-3 p-4 border-b border-slate-200">
         <div class="flex items-center gap-2">
-          <h3 class="font-extrabold text-slate-900">تفاصيل التقرير</h3>
+          <h3 id="report-modal-title" class="font-extrabold text-slate-900">تفاصيل التقرير</h3>
           <span id="report-status-badge" class="text-[10px] font-bold rounded-full px-2 py-1 bg-slate-100 text-slate-600">مسودة</span>
         </div>
         <div class="flex items-center gap-2">
@@ -233,7 +271,7 @@
           <button id="edit-report-btn" class="btn-ghost !py-1.5 !px-3 text-xs"><i class="fa-solid fa-pen ml-1"></i> تعديل</button>
           <button id="approve-report-btn" class="btn-primary !py-1.5 !px-3 text-xs"><i class="fa-solid fa-check ml-1"></i> اعتماد</button>
           <button id="print-report-btn" class="btn-ghost !py-1.5 !px-3"><i class="fa-solid fa-print ml-1"></i> طباعة</button>
-          <button id="close-report-btn" class="btn-ghost !py-1.5 !px-3"><i class="fa-solid fa-xmark"></i></button>
+          <button id="close-report-btn" class="btn-ghost !py-2 !px-3" aria-label="إغلاق التقرير"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
         </div>
       </div>
       <div id="report-modal-body" class="p-6"></div>
@@ -272,7 +310,7 @@
   </div>
 
   <!-- ASSESSMENT EDITOR MODAL -->
-  <div id="assessment-modal" class="no-print hidden fixed inset-0 z-50 modal-backdrop flex items-start justify-center p-3 sm:p-6 overflow-y-auto">
+  <div id="assessment-modal" class="no-print hidden fixed inset-0 z-50 modal-backdrop flex items-start justify-center p-3 sm:p-6 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="assessment-modal-title">
     <div class="bg-white rounded-2xl w-full max-w-3xl my-2 shadow-2xl">
       <div class="flex items-center justify-between p-4 border-b border-slate-200">
         <h3 id="assessment-modal-title" class="font-extrabold text-slate-900">اختبار جديد</h3>

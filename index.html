@@ -2,7 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#065f46" />
   <title>منصة التقييم الإكلينيكي | جامعة المنوفية</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,23 +14,25 @@
 </head>
 <body class="min-h-screen flex flex-col">
 
+  <a href="#main-content" class="skip-link">تخطَّ إلى المحتوى الرئيسي</a>
+
   <header class="no-print bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-      <a href="index.html" class="flex items-center gap-3">
-        <img src="image_4f89bd.jpg" alt="جامعة المنوفية" class="w-10 h-10 object-contain rounded-lg border border-slate-100 bg-white p-0.5">
+      <a href="index.html" class="flex items-center gap-3 rounded-lg focus-ring">
+        <img src="image_4f89bd.jpg" alt="" class="w-10 h-10 object-contain rounded-lg border border-slate-100 bg-white p-0.5">
         <div>
           <h1 id="site-name" class="text-sm sm:text-base font-extrabold text-slate-800 leading-tight">منصة التقييم الإكلينيكي</h1>
-          <p id="university-name" class="text-[11px] text-slate-500">جامعة المنوفية</p>
+          <p id="university-name" class="text-xs text-slate-600">جامعة المنوفية</p>
         </div>
       </a>
-      <a href="specialist.html" class="text-xs font-bold text-slate-500 hover:text-emerald-700 flex items-center gap-1.5 transition">
-        <i class="fa-solid fa-lock text-[11px]"></i>
+      <a href="specialist.html" class="text-xs font-bold text-slate-700 hover:text-emerald-800 flex items-center gap-1.5 transition rounded-lg focus-ring min-h-[44px] px-2">
+        <i class="fa-solid fa-lock text-[11px]" aria-hidden="true"></i>
         <span class="hidden sm:inline">دخول المتخصص</span>
       </a>
     </div>
   </header>
 
-  <main class="flex-1">
+  <main id="main-content" tabindex="-1" class="flex-1 focus:outline-none">
     <section class="brand-gradient text-white">
       <div class="max-w-6xl mx-auto px-4 py-14 sm:py-20 grid md:grid-cols-2 gap-10 items-center">
         <div>
@@ -39,19 +42,19 @@
           <h2 id="hero-title" class="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-tight mb-4">
             أداة تقييم إكلينيكي متكاملة
           </h2>
-          <p id="hero-text" class="text-sm sm:text-base text-emerald-50/90 leading-loose max-w-xl mb-7">
+          <p id="hero-text" class="text-sm sm:text-base text-emerald-50 leading-loose max-w-xl mb-7">
             أداة تقييم إكلينيكي متكاملة تُستخدم داخل السياق العلاجي والتربوي.
           </p>
-          <a href="patient.html" class="inline-flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-emerald-950 font-extrabold rounded-xl px-6 py-3.5 text-sm transition">
-            <i class="fa-solid fa-arrow-left"></i>
-            ابدأ التقييم
+          <a href="patient.html" class="inline-flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-emerald-950 font-extrabold rounded-xl px-6 py-3.5 text-sm transition focus-ring min-h-[48px]">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+            أدخل رقم الدخول
           </a>
-          <p class="mt-5 text-[11px] text-emerald-100/70">
-            <i class="fa-solid fa-shield-halved ml-1"></i>
+          <p class="mt-5 text-xs text-emerald-50">
+            <i class="fa-solid fa-shield-halved ml-1" aria-hidden="true"></i>
             استجاباتك تُستخدم لأغراض التقييم فقط، وتُحفظ بسرية تامة.
           </p>
         </div>
-        <div class="hidden md:grid grid-cols-3 gap-3">
+        <div class="hidden md:grid grid-cols-3 gap-3" aria-hidden="true">
           <div class="bg-white/10 border border-white/15 rounded-2xl p-5 text-center">
             <i class="fa-solid fa-clipboard-list text-2xl text-amber-300 mb-3"></i>
             <p class="text-xs text-emerald-50">اختبارات معتمدة</p>
@@ -69,46 +72,54 @@
     </section>
 
     <section class="max-w-6xl mx-auto px-4 py-12 sm:py-16">
-      <div class="flex items-end justify-between gap-4 mb-7">
-        <div>
-          <span class="text-[11px] font-extrabold tracking-wider text-emerald-700">ASSESSMENT SUITES</span>
-          <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">حقائب التقييم</h3>
-          <p class="text-sm text-slate-500 mt-2">اختر الحقيبة ثم الأداة المطلوبة للبدء. يمكنك الرجوع وتعديل إجابتك في أي وقت.</p>
-        </div>
-        <i class="fa-solid fa-brain text-4xl text-emerald-100 hidden sm:block"></i>
+      <div class="mb-7">
+        <span class="text-[11px] font-extrabold tracking-wider text-emerald-800">كيف تبدأ</span>
+        <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">رقم الدخول من المتخصص</h3>
+        <p class="text-sm text-slate-700 mt-2">لا تحتاج إلى اختيار اختبار بنفسك. المتخصص هو الذي يرسل لك رقم دخول مكوّناً من 8 أرقام، صالحاً لمرة واحدة.</p>
       </div>
 
-      <div id="catalog-loading" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        <div class="h-44 bg-white rounded-2xl border border-slate-200 animate-pulse"></div>
-        <div class="h-44 bg-white rounded-2xl border border-slate-200 animate-pulse"></div>
-        <div class="h-44 bg-white rounded-2xl border border-slate-200 animate-pulse"></div>
-      </div>
-      <div id="catalog" class="hidden space-y-10"></div>
+      <ol class="grid sm:grid-cols-3 gap-5 list-none p-0">
+        <li class="bg-white rounded-2xl border border-slate-200 p-6">
+          <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-emerald-100 text-emerald-800 font-extrabold mb-4">1</span>
+          <h4 class="font-extrabold text-slate-900 mb-2">استلم الرقم</h4>
+          <p class="text-xs text-slate-700 leading-relaxed">يُصدر المتخصص رقم دخول خاصاً بك من لوحة التحكم، ويرسله لك بأي وسيلة تختارها.</p>
+        </li>
+        <li class="bg-white rounded-2xl border border-slate-200 p-6">
+          <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-emerald-100 text-emerald-800 font-extrabold mb-4">2</span>
+          <h4 class="font-extrabold text-slate-900 mb-2">افتح صفحة الجلسة</h4>
+          <p class="text-xs text-slate-700 leading-relaxed">أدخل الرقم في صفحة التقييم ووافق على استخدام استجاباتك لأغراض التقييم.</p>
+        </li>
+        <li class="bg-white rounded-2xl border border-slate-200 p-6">
+          <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-emerald-100 text-emerald-800 font-extrabold mb-4">3</span>
+          <h4 class="font-extrabold text-slate-900 mb-2">أجب بكل راحة</h4>
+          <p class="text-xs text-slate-700 leading-relaxed">تظهر العبارات فقط دون أي اسم أو نتيجة، ويمكنك الرجوع لتعديل إجابتك قبل الإنهاء.</p>
+        </li>
+      </ol>
     </section>
 
     <section class="bg-white border-y border-slate-200">
       <div class="max-w-6xl mx-auto px-4 py-10 grid sm:grid-cols-3 gap-6 text-center">
         <div>
-          <i class="fa-solid fa-user-shield text-emerald-700 text-xl mb-2"></i>
+          <i class="fa-solid fa-user-shield text-emerald-700 text-xl mb-2" aria-hidden="true"></i>
           <p class="text-sm font-bold text-slate-800">فصل تام بين الأدوار</p>
-          <p class="text-xs text-slate-500 mt-1">صفحة للمريض وأخرى للمتخصص</p>
+          <p class="text-xs text-slate-700 mt-1">صفحة للمريض وأخرى للمتخصص</p>
         </div>
         <div>
-          <i class="fa-solid fa-database text-emerald-700 text-xl mb-2"></i>
+          <i class="fa-solid fa-database text-emerald-700 text-xl mb-2" aria-hidden="true"></i>
           <p class="text-sm font-bold text-slate-800">بيانات محمية</p>
-          <p class="text-xs text-slate-500 mt-1">تخزين آمن وصلاحيات مشددة</p>
+          <p class="text-xs text-slate-700 mt-1">تخزين آمن وصلاحيات مشددة</p>
         </div>
         <div>
-          <i class="fa-solid fa-screwdriver-wrench text-emerald-700 text-xl mb-2"></i>
-          <p class="text-sm font-bold text-slate-800">قابل للتطوير</p>
-          <p class="text-xs text-slate-500 mt-1">أضف اختبارات وعدّل المحتوى بسهولة</p>
+          <i class="fa-solid fa-universal-access text-emerald-700 text-xl mb-2" aria-hidden="true"></i>
+          <p class="text-sm font-bold text-slate-800">إتاحة واستخدام سهل</p>
+          <p class="text-xs text-slate-700 mt-1">دعم لوحة المفاتيح والشاشات القارئة والجوال</p>
         </div>
       </div>
     </section>
   </main>
 
-  <footer class="no-print bg-slate-900 text-slate-300 py-6">
-    <div class="max-w-6xl mx-auto px-4 text-center text-[11px]">
+  <footer class="no-print bg-slate-900 text-slate-200 py-6">
+    <div class="max-w-6xl mx-auto px-4 text-center text-xs">
       <p id="footer-text">جامعة المنوفية — منصة التقييم الإكلينيكي</p>
     </div>
   </footer>

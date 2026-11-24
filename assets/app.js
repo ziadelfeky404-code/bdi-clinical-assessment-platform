@@ -38,6 +38,8 @@ export function toast(message, type = 'success') {
   document.querySelectorAll('.toast').forEach(el => el.remove());
   const el = document.createElement('div');
   el.className = `toast ${type === 'error' ? 'bg-rose-700 text-white' : 'bg-emerald-800 text-white'}`;
+  el.setAttribute('role', type === 'error' ? 'alert' : 'status');
+  el.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
   el.textContent = message;
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 3600);
@@ -69,4 +71,21 @@ export function formatDate(value, withTime = false) {
 export function setText(id, value) {
   const el = document.getElementById(id);
   if (el) el.textContent = value ?? '';
+}
+
+// Keeps keyboard focus inside an open dialog and restores it on close.
+export function setupDialog(modal, open, close) {
+  if (!modal) return { open, close };
+  const focusable = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  modal.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.preventDefault(); close(); return; }
+    if (e.key !== 'Tab') return;
+    const items = [...modal.querySelectorAll(focusable)].filter(el => el.offsetParent !== null);
+    if (!items.length) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+  return { open, close };
 }

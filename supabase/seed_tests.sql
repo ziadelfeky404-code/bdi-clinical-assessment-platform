@@ -215,7 +215,9 @@ begin
       'المجموعة ' || v_set_letter, 'Set ' || v_set_letter,
       'المصفوفة ' || v_local, 'Matrix ' || v_local,
       '', '',
-      'assets/raven/' || v_set_letter || lpad(v_local::text, 2, '0') || '.jpeg',
+      case when v_set_letter = 'E' and v_local = 12
+        then 'assets/raven/E12-rotated.jpeg'
+        else 'assets/raven/' || v_set_letter || lpad(v_local::text, 2, '0') || '.jpeg' end,
       v_opts, v_scales
     );
   end loop;

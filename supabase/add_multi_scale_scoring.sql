@@ -37,6 +37,54 @@ language sql stable security definer set search_path = public as $$
   where a.slug = p_slug and a.active = true;
 $$;
 
+-- Code-based lookup: validates without consuming; neutral fields only.
+create or replace function public.get_assessment_by_access_code(p_code text) returns jsonb
+language plpgsql security definer set search_path = public, extensions as $$
+declare
+  v_hash text := encode(extensions.digest(coalesce(trim(p_code), ''), 'sha256'), 'hex');
+  v_code public.access_codes%rowtype;
+  v_result jsonb;
+begin
+  select * into v_code from public.access_codes where code_hash = v_hash;
+  if not found or v_code.used_at is not null or v_code.revoked
+     or v_code.expires_at <= now() or v_code.attempts >= 10 then
+    if found and v_code.attempts < 10 then
+      update public.access_codes set attempts = attempts + 1 where id = v_code.id;
+    end if;
+    raise exception 'رقم الدخول غير صالح أو منتهي الصلاحية';
+  end if;
+
+  select jsonb_build_object(
+    'slug', a.slug,
+    'titleAr', coalesce(nullif(a.patient_label_ar, ''), a.title_ar),
+    'titleEn', coalesce(nullif(a.patient_label_en, ''), a.title_en),
+    'descriptionAr', a.description_ar,
+    'descriptionEn', a.description_en,
+    'instructionsAr', a.instructions_ar,
+    'instructionsEn', a.instructions_en,
+    'suite', a.suite,
+    'version', a.version,
+    'items', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'position', i.position,
+        'textAr', i.text_ar,
+        'textEn', i.text_en,
+        'imageUrl', i.image_url,
+        'options', i.options
+      ) order by i.position)
+      from public.assessment_items i
+      where i.assessment_id = a.id
+    ), '[]'::jsonb)
+  ) into v_result
+  from public.assessments a
+  where a.id = v_code.assessment_id and a.active = true;
+
+  if v_result is null then
+    raise exception 'رقم الدخول غير صالح أو منتهي الصلاحية';
+  end if;
+  return v_result;
+end $$;
+
 create or replace function public.get_public_settings() returns jsonb
 language sql stable security definer set search_path = public as $$
   select coalesce(jsonb_object_agg(s.key, s.value), '{}'::jsonb)
@@ -48,7 +96,8 @@ $$;
 -- 5. SERVER-SIDE SUBMISSION & SCORING (patient never receives a score)
 -- =============================================================================
 
-create or replace function public.submit_assessment(
+-- Internal scoring implementation. Public entry point is the wrapper below.
+create or replace function public.submit_assessment_scoring(
   p_slug text,
   p_patient_name text,
   p_age integer,
@@ -358,4 +407,64 @@ begin
     'code', v_code,
     'assessmentTitleAr', v_assessment.title_ar
   );
+end $$;
+
+-- Public submission: anon callers must provide a valid single-use code.
+-- Specialists may seed demo data by slug (their session authenticates the call).
+create or replace function public.submit_assessment(
+  p_slug text,
+  p_patient_name text,
+  p_age integer,
+  p_gender text,
+  p_examiner text,
+  p_notes text,
+  p_answers jsonb,
+  p_access_code text default null
+) returns jsonb
+language plpgsql security definer set search_path = public, extensions as $$
+declare
+  v_code public.access_codes%rowtype;
+  v_hash text;
+  v_slug text := p_slug;
+  v_result jsonb;
+  v_title text;
+  v_has_code boolean := coalesce(trim(p_access_code), '') <> '';
+begin
+  if v_has_code then
+    v_hash := encode(extensions.digest(trim(p_access_code), 'sha256'), 'hex');
+    select * into v_code
+    from public.access_codes where code_hash = v_hash
+    for update skip locked;
+
+    if not found or v_code.used_at is not null or v_code.revoked
+       or v_code.expires_at <= now() or v_code.attempts >= 10 then
+      if found and v_code.attempts < 10 then
+        update public.access_codes set attempts = attempts + 1 where id = v_code.id;
+      end if;
+      raise exception 'رقم الدخول غير صالح أو منتهي الصلاحية';
+    end if;
+
+    select a.slug into v_slug
+    from public.assessments a where a.id = v_code.assessment_id and a.active = true;
+    if not found then
+      raise exception 'رقم الدخول غير صالح أو منتهي الصلاحية';
+    end if;
+  elsif not public.is_specialist() then
+    raise exception 'رقم الدخول مطلوب للبدء';
+  end if;
+
+  v_result := public.submit_assessment_scoring(
+    v_slug, p_patient_name, p_age, p_gender, p_examiner, p_notes, p_answers
+  );
+
+  if v_has_code then
+    update public.access_codes set used_at = now()
+    where id = v_code.id and used_at is null;
+
+    select coalesce(nullif(a.patient_label_ar, ''), a.title_ar) into v_title
+    from public.assessments a where a.slug = v_slug;
+    v_result := v_result || jsonb_build_object('assessmentTitleAr', coalesce(v_title, ''));
+  end if;
+
+  return v_result;
 end $$;
