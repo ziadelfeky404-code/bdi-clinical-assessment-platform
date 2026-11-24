@@ -147,6 +147,8 @@ function openAccessCodeModal(code, expiresAt, assessmentTitle) {
 }
 
 function closeAccessCodeModal() {
+  // The plaintext code is shown once only; never leave it in the hidden DOM.
+  setText('access-code-value', '');
   document.getElementById('access-code-modal').classList.add('hidden');
   if (state.lastFocused?.focus) state.lastFocused.focus({ preventScroll: true });
   loadAccessCodes();
@@ -1044,7 +1046,7 @@ function bindEvents() {
   });
 
   document.getElementById('issue-code-btn').addEventListener('click', () =>
-    issueAccessCode(document.getElementById('access-code-assessment').value));
+    issueAccessCode(document.getElementById('access-code-assessment')?.value));
   document.getElementById('access-code-close-btn').addEventListener('click', closeAccessCodeModal);
   document.getElementById('access-code-copy-btn').addEventListener('click', async () => {
     const code = document.getElementById('access-code-value').textContent.trim();
