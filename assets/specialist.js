@@ -717,7 +717,7 @@ function renderAssessments() {
     <div class="rounded-2xl border ${a.active ? 'border-emerald-200 bg-emerald-50/40' : 'border-slate-200 bg-slate-50'} p-5">
       <div class="flex items-start justify-between gap-3 mb-3">
         <div>
-          <h4 class="font-extrabold text-slate-900">${escapeHtml(a.title_ar)}</h4>
+          <h3 class="font-extrabold text-slate-900">${escapeHtml(a.title_ar)}</h3>
           <p class="font-en text-[11px] font-bold text-emerald-700 mt-0.5">${escapeHtml(a.title_en)}</p>
         </div>
         <span class="text-[10px] font-bold rounded-full px-2 py-1 ${a.active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}">${a.active ? 'مفعّل' : 'متوقف'}</span>
@@ -768,26 +768,26 @@ function renderItemsEditor() {
       <div class="flex items-center justify-between mb-3">
         <span class="text-xs font-extrabold text-slate-700">البند ${idx + 1}</span>
         <div class="flex items-center gap-2">
-          <button type="button" data-item-up="${idx}" class="text-slate-400 hover:text-emerald-700"><i class="fa-solid fa-arrow-up"></i></button>
-          <button type="button" data-item-down="${idx}" class="text-slate-400 hover:text-emerald-700"><i class="fa-solid fa-arrow-down"></i></button>
-          <button type="button" data-item-delete="${idx}" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-trash"></i></button>
+          <button type="button" data-item-up="${idx}" class="text-slate-400 hover:text-emerald-700" aria-label="تحريك البند ${idx + 1} إلى الأعلى"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></button>
+          <button type="button" data-item-down="${idx}" class="text-slate-400 hover:text-emerald-700" aria-label="تحريك البند ${idx + 1} إلى الأسفل"><i class="fa-solid fa-arrow-down" aria-hidden="true"></i></button>
+          <button type="button" data-item-delete="${idx}" class="text-rose-500 hover:text-rose-700" aria-label="حذف البند ${idx + 1}"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
         </div>
       </div>
       <div class="grid sm:grid-cols-3 gap-3 mb-3">
-        <div><label class="field-label">الترتيب</label><input class="field" data-ifield="position" data-idx="${idx}" type="number" value="${escapeHtml(item.position)}" /></div>
-        <div><label class="field-label">المجال (للمتخصص)</label><input class="field" data-ifield="domain_ar" data-idx="${idx}" value="${escapeHtml(item.domain_ar || '')}" /></div>
-        <div><label class="field-label">عنوان البند (للمتخصص)</label><input class="field" data-ifield="title_ar" data-idx="${idx}" value="${escapeHtml(item.title_ar || '')}" /></div>
+        <div><label class="field-label" for="item-position-${idx}">الترتيب</label><input id="item-position-${idx}" class="field" data-ifield="position" data-idx="${idx}" type="number" value="${escapeHtml(item.position)}" /></div>
+        <div><label class="field-label" for="item-domain-${idx}">المجال (للمتخصص)</label><input id="item-domain-${idx}" class="field" data-ifield="domain_ar" data-idx="${idx}" value="${escapeHtml(item.domain_ar || '')}" /></div>
+        <div><label class="field-label" for="item-title-${idx}">عنوان البند (للمتخصص)</label><input id="item-title-${idx}" class="field" data-ifield="title_ar" data-idx="${idx}" value="${escapeHtml(item.title_ar || '')}" /></div>
       </div>
       <div class="grid sm:grid-cols-2 gap-3 mb-3">
-        <div><label class="field-label">نص البند (عربي)</label><textarea class="field" rows="2" data-ifield="text_ar" data-idx="${idx}">${escapeHtml(item.text_ar || '')}</textarea></div>
-        <div><label class="field-label">Item text (English)</label><textarea class="field" rows="2" data-ifield="text_en" data-idx="${idx}">${escapeHtml(item.text_en || '')}</textarea></div>
+        <div><label class="field-label" for="item-text-ar-${idx}">نص البند (عربي)</label><textarea id="item-text-ar-${idx}" class="field" rows="2" data-ifield="text_ar" data-idx="${idx}">${escapeHtml(item.text_ar || '')}</textarea></div>
+        <div><label class="field-label" for="item-text-en-${idx}">Item text (English)</label><textarea id="item-text-en-${idx}" class="field" rows="2" data-ifield="text_en" data-idx="${idx}">${escapeHtml(item.text_en || '')}</textarea></div>
       </div>
       <div class="grid sm:grid-cols-2 gap-3 mb-3">
-        <div><label class="field-label">صورة البند (اختياري)</label><input class="field font-en" dir="ltr" data-ifield="image_url" data-idx="${idx}" value="${escapeHtml(item.image_url || '')}" placeholder="assets/raven/A01.png" /></div>
-        <div><label class="field-label">المقاييس (JSON: [{"key":"E","direction":"positive"}])</label><textarea class="field font-en" dir="ltr" rows="2" data-ifield="scales" data-idx="${idx}">${escapeHtml(prettyJson(item.scales || []))}</textarea></div>
+        <div><label class="field-label" for="item-image-${idx}">صورة البند (اختياري)</label><input id="item-image-${idx}" class="field font-en" dir="ltr" data-ifield="image_url" data-idx="${idx}" value="${escapeHtml(item.image_url || '')}" placeholder="assets/raven/A01.png" /></div>
+        <div><label class="field-label" for="item-scales-${idx}">المقاييس (JSON: [{"key":"E","direction":"positive"}])</label><textarea id="item-scales-${idx}" class="field font-en" dir="ltr" rows="2" data-ifield="scales" data-idx="${idx}">${escapeHtml(prettyJson(item.scales || []))}</textarea></div>
       </div>
-      <div><label class="field-label">الخيارات (JSON: [{"score":0,"ar":"...","en":"..."}])</label>
-        <textarea class="field font-en" dir="ltr" rows="4" data-ifield="options" data-idx="${idx}">${escapeHtml(prettyJson(item.options))}</textarea>
+      <div><label class="field-label" for="item-options-${idx}">الخيارات (JSON: [{"score":0,"ar":"...","en":"..."}])</label>
+        <textarea id="item-options-${idx}" class="field font-en" dir="ltr" rows="4" data-ifield="options" data-idx="${idx}">${escapeHtml(prettyJson(item.options))}</textarea>
       </div>
     </div>`).join('') || '<p class="text-sm text-slate-400 text-center py-4">لا توجد بنود. أضف بنداً جديداً.</p>';
 

@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#065f46" />
+  <meta name="description" content="لوحة المتخصص: إصدار رموز دخول لمرة واحدة، مراجعة التقارير وتعديلها واعتمادها، وإدارة الاختبارات والإعدادات." />
   <title>لوحة المتخصص | جامعة المنوفية</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +15,7 @@
 </head>
 <body class="min-h-screen bg-slate-50">
 
-  <a href="#app-view" class="skip-link">تخطَّ إلى المحتوى الرئيسي</a>
+  <a href="#main-content" class="skip-link">تخطَّ إلى المحتوى الرئيسي</a>
 
   <header class="no-print bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
@@ -25,6 +26,7 @@
           <p class="text-[11px] text-slate-500">جامعة المنوفية — منصة التقييم الإكلينيكي</p>
         </div>
       </a>
+      <a href="accessibility.html" class="text-xs font-bold text-emerald-800 underline rounded focus-ring min-h-[44px] flex items-center px-2">الإتاحة</a>
       <div id="header-actions" class="hidden items-center gap-3">
         <span id="user-label" class="text-xs font-bold text-slate-600"></span>
         <button id="logout-btn" class="btn-ghost !py-1.5 !px-3 text-xs">خروج</button>
@@ -32,6 +34,7 @@
     </div>
   </header>
 
+  <main id="main-content">
   <!-- LOGIN -->
   <section id="login-view" class="min-h-[calc(100vh-64px)] flex items-center justify-center px-4 py-12">
     <div class="w-full max-w-md bg-white rounded-3xl shadow-xl border border-slate-200 p-7 sm:p-9 fade-in">
@@ -75,27 +78,27 @@
 
     <aside class="no-print">
       <nav role="tablist" aria-label="أقسام لوحة المتخصص" class="bg-white rounded-2xl border border-slate-200 p-2 sticky top-20 space-y-1">
-        <button data-tab="dashboard" class="nav-link active w-full text-right rounded-xl px-3.5 py-2.5 text-sm font-bold flex items-center gap-2.5">
+        <button id="tab-btn-dashboard" data-tab="dashboard" role="tab" aria-selected="true" aria-controls="tab-dashboard" class="nav-link active w-full text-right rounded-xl px-3.5 py-2.5 text-sm font-bold flex items-center gap-2.5">
           <i class="fa-solid fa-gauge-high w-5 text-center"></i> نظرة عامة
         </button>
-        <button data-tab="reports" class="nav-link w-full text-right rounded-xl px-3.5 py-2.5 text-sm font-bold flex items-center gap-2.5">
+        <button id="tab-btn-reports" data-tab="reports" role="tab" aria-selected="false" aria-controls="tab-reports" class="nav-link w-full text-right rounded-xl px-3.5 py-2.5 text-sm font-bold flex items-center gap-2.5">
           <i class="fa-solid fa-folder-open w-5 text-center"></i> أرشيف التقارير
         </button>
-        <button data-tab="assessments" class="nav-link w-full text-right rounded-xl px-3.5 py-2.5 text-sm font-bold flex items-center gap-2.5">
+        <button id="tab-btn-assessments" data-tab="assessments" role="tab" aria-selected="false" aria-controls="tab-assessments" class="nav-link w-full text-right rounded-xl px-3.5 py-2.5 text-sm font-bold flex items-center gap-2.5">
           <i class="fa-solid fa-flask w-5 text-center"></i> الاختبارات
         </button>
-        <button data-tab="settings" class="nav-link w-full text-right rounded-xl px-3.5 py-2.5 text-sm font-bold flex items-center gap-2.5">
+        <button id="tab-btn-settings" data-tab="settings" role="tab" aria-selected="false" aria-controls="tab-settings" class="nav-link w-full text-right rounded-xl px-3.5 py-2.5 text-sm font-bold flex items-center gap-2.5">
           <i class="fa-solid fa-sliders w-5 text-center"></i> إعدادات الموقع
         </button>
-        <button data-tab="team" class="nav-link w-full text-right rounded-xl px-3.5 py-2.5 text-sm font-bold flex items-center gap-2.5">
+        <button id="tab-btn-team" data-tab="team" role="tab" aria-selected="false" aria-controls="tab-team" class="nav-link w-full text-right rounded-xl px-3.5 py-2.5 text-sm font-bold flex items-center gap-2.5">
           <i class="fa-solid fa-users-gear w-5 text-center"></i> المتخصصون
         </button>
       </nav>
     </aside>
 
-    <main>
+    <div>
       <!-- Dashboard -->
-      <section id="tab-dashboard" class="space-y-6 fade-in">
+      <section id="tab-dashboard" role="tabpanel" aria-labelledby="tab-btn-dashboard" class="space-y-6 fade-in">
         <div id="demo-banner" class="hidden rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-4 flex flex-wrap items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center">
             <i class="fa-solid fa-flask"></i>
@@ -130,25 +133,25 @@
 
         <div class="bg-white rounded-2xl border border-slate-200 p-6">
           <div class="flex items-center justify-between mb-5">
-            <h3 class="font-extrabold text-slate-900">أحدث التقارير</h3>
+            <h2 class="font-extrabold text-slate-900">أحدث التقارير</h2>
             <button data-tab="reports" class="text-xs font-bold text-emerald-700">عرض الكل <i class="fa-solid fa-arrow-left"></i></button>
           </div>
           <div id="recent-reports" class="overflow-x-auto"></div>
         </div>
 
         <div class="bg-white rounded-2xl border border-rose-200 p-6">
-          <h3 class="font-extrabold text-rose-800 mb-4 flex items-center gap-2">
+          <h2 class="font-extrabold text-rose-800 mb-4 flex items-center gap-2">
             <i class="fa-solid fa-triangle-exclamation"></i> تنبيهات تحتاج متابعة
-          </h3>
+          </h2>
           <div id="dashboard-alerts" class="space-y-3"></div>
         </div>
       </section>
 
       <!-- Reports -->
-      <section id="tab-reports" class="hidden fade-in">
+      <section id="tab-reports" role="tabpanel" aria-labelledby="tab-btn-reports" class="hidden fade-in">
         <div class="bg-white rounded-2xl border border-slate-200 p-6">
           <div class="flex flex-wrap items-center gap-3 mb-5">
-            <h3 class="font-extrabold text-slate-900 ml-auto">أرشيف التقارير</h3>
+            <h2 class="font-extrabold text-slate-900 ml-auto">أرشيف التقارير</h2>
             <label for="report-search" class="sr-only">ابحث بالاسم أو رقم الجلسة</label>
             <input id="report-search" class="field !w-auto flex-1 min-w-[180px]" placeholder="ابحث بالاسم أو رقم الجلسة" />
             <select id="report-filter" class="field !w-auto min-w-[160px]">
@@ -160,11 +163,11 @@
       </section>
 
       <!-- Assessments -->
-      <section id="tab-assessments" class="hidden fade-in">
+      <section id="tab-assessments" role="tabpanel" aria-labelledby="tab-btn-assessments" class="hidden fade-in">
         <div class="bg-white rounded-2xl border border-slate-200 p-6">
           <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
             <div>
-              <h3 class="font-extrabold text-slate-900">مكتبة الاختبارات</h3>
+              <h2 class="font-extrabold text-slate-900">مكتبة الاختبارات</h2>
               <p class="text-xs text-slate-500 mt-1">عدّل البنود، الخيارات، حدود التصنيف، والتنبيهات من مكان واحد.</p>
             </div>
             <button id="add-assessment-btn" class="btn-primary flex items-center gap-2"><i class="fa-solid fa-plus"></i> اختبار جديد</button>
@@ -189,9 +192,9 @@
       </section>
 
       <!-- Settings -->
-      <section id="tab-settings" class="hidden fade-in">
+      <section id="tab-settings" role="tabpanel" aria-labelledby="tab-btn-settings" class="hidden fade-in">
         <div class="bg-white rounded-2xl border border-slate-200 p-6">
-          <h3 class="font-extrabold text-slate-900 mb-1">إعدادات الموقع</h3>
+          <h2 class="font-extrabold text-slate-900 mb-1">إعدادات الموقع</h2>
           <p class="text-xs text-slate-500 mb-6">النصوص التي يراها المريض في الصفحة الرئيسية وصفحة الجلسة.</p>
           <div id="settings-form" class="grid sm:grid-cols-2 gap-5"></div>
           <div class="mt-7 pt-5 border-t border-slate-100 flex justify-end">
@@ -201,11 +204,11 @@
       </section>
 
       <!-- Team -->
-      <section id="tab-team" class="hidden fade-in space-y-6">
+      <section id="tab-team" role="tabpanel" aria-labelledby="tab-btn-team" class="hidden fade-in space-y-6">
         <div class="bg-white rounded-2xl border border-slate-200 p-6">
           <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
             <div>
-              <h3 class="font-extrabold text-slate-900 mb-1">حسابات المتخصصين</h3>
+              <h2 class="font-extrabold text-slate-900 mb-1">حسابات المتخصصين</h2>
               <p class="text-xs text-slate-500">يمكن لمدير النظام إضافة متخصصين وتعديل صلاحياتهم وحالتهم أو حذفهم.</p>
             </div>
             <button id="show-team-btn" class="hidden btn-primary !py-2 !px-3 text-xs flex items-center gap-2"><i class="fa-solid fa-plus"></i> إضافة متخصص</button>
@@ -213,7 +216,7 @@
           <div id="team-list" class="overflow-x-auto"></div>
         </div>
         <div id="add-team-card" class="hidden bg-white rounded-2xl border border-slate-200 p-6">
-          <h4 class="font-extrabold text-slate-900 mb-4">إضافة متخصص</h4>
+          <h3 class="font-extrabold text-slate-900 mb-4">إضافة متخصص</h3>
           <div class="grid sm:grid-cols-2 gap-4">
             <div><label class="field-label" for="new-team-name">الاسم</label><input id="new-team-name" class="field" /></div>
             <div><label class="field-label" for="new-team-email">البريد الإلكتروني</label><input id="new-team-email" type="email" class="field" /></div>
@@ -229,15 +232,16 @@
           </div>
         </div>
         <div class="bg-white rounded-2xl border border-slate-200 p-6">
-          <h4 class="font-extrabold text-slate-900 mb-4">تغيير كلمة المرور</h4>
+          <h3 class="font-extrabold text-slate-900 mb-4">تغيير كلمة المرور</h3>
           <div class="grid sm:grid-cols-2 gap-4 max-w-xl">
             <div><label class="field-label" for="new-password">كلمة المرور الجديدة</label><input id="new-password" type="password" class="field" /></div>
             <div class="flex items-end"><button id="change-password-btn" class="btn-primary w-full">تحديث</button></div>
           </div>
         </div>
       </section>
-    </main>
+    </div>
   </div>
+  </main>
 
   <!-- ACCESS CODE MODAL -->
   <div id="access-code-modal" class="no-print hidden fixed inset-0 z-[60] modal-backdrop flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="access-code-modal-title">
@@ -245,9 +249,9 @@
       <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-xl" aria-hidden="true">
         <i class="fa-solid fa-key"></i>
       </div>
-      <h3 id="access-code-modal-title" class="text-lg font-extrabold text-slate-900 mb-2">رقم الدخول للمريض</h3>
+      <h2 id="access-code-modal-title" class="text-lg font-extrabold text-slate-900 mb-2">رقم الدخول للمريض</h2>
       <p id="access-code-expires" class="text-xs text-slate-700 mb-5"></p>
-      <p id="access-code-value" class="code-value bg-emerald-50 border-2 border-emerald-200 rounded-xl py-4 px-3 text-emerald-900 mb-2" tabindex="0" aria-label="رقم الدخول"></p>
+      <p id="access-code-value" class="code-value bg-emerald-50 border-2 border-emerald-200 rounded-xl py-4 px-3 text-emerald-900 mb-2" tabindex="0" role="status" aria-live="polite"></p>
       <p class="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-5">
         انسخ الرقم وأرسله للمريض. لا يمكن عرضه مرة أخرى بعد إغلاق هذه النافذة.
       </p>
@@ -263,7 +267,7 @@
     <div class="print-full bg-white rounded-2xl w-full max-w-4xl my-2 shadow-2xl">
       <div class="no-print flex items-center justify-between gap-3 p-4 border-b border-slate-200">
         <div class="flex items-center gap-2">
-          <h3 id="report-modal-title" class="font-extrabold text-slate-900">تفاصيل التقرير</h3>
+          <h2 id="report-modal-title" class="font-extrabold text-slate-900">تفاصيل التقرير</h2>
           <span id="report-status-badge" class="text-[10px] font-bold rounded-full px-2 py-1 bg-slate-100 text-slate-600">مسودة</span>
         </div>
         <div class="flex items-center gap-2">
@@ -313,27 +317,27 @@
   <div id="assessment-modal" class="no-print hidden fixed inset-0 z-50 modal-backdrop flex items-start justify-center p-3 sm:p-6 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="assessment-modal-title">
     <div class="bg-white rounded-2xl w-full max-w-3xl my-2 shadow-2xl">
       <div class="flex items-center justify-between p-4 border-b border-slate-200">
-        <h3 id="assessment-modal-title" class="font-extrabold text-slate-900">اختبار جديد</h3>
-        <button id="close-assessment-btn" class="btn-ghost !py-1.5 !px-3"><i class="fa-solid fa-xmark"></i></button>
+        <h2 id="assessment-modal-title" class="font-extrabold text-slate-900">اختبار جديد</h2>
+        <button id="close-assessment-btn" class="btn-ghost !py-1.5 !px-3" aria-label="إغلاق محرر الاختبار"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
       </div>
       <div class="p-6 space-y-5">
         <div class="grid sm:grid-cols-2 gap-4">
-          <div><label class="field-label">المعرّف (slug)</label><input id="a-slug" class="field" placeholder="bdi-ii" /></div>
-          <div><label class="field-label">الإصدار</label><input id="a-version" class="field" value="1.0" /></div>
-          <div><label class="field-label">العنوان (للمتخصص)</label><input id="a-title-ar" class="field" /></div>
-          <div><label class="field-label">Title (English)</label><input id="a-title-en" class="field" /></div>
-          <div><label class="field-label">العنوان المعروض للمريض</label><input id="a-patient-ar" class="field" placeholder="أداة التقييم الإكلينيكي" /></div>
-          <div><label class="field-label">Patient-facing title</label><input id="a-patient-en" class="field" /></div>
-          <div><label class="field-label">الحقيبة</label><select id="a-suite" class="field"><option value="clinical">الحقيبة الإكلينيكية</option><option value="special">حقيبة الفئات الخاصة</option></select></div>
-          <div><label class="field-label">القسم (داخلي)</label><select id="a-category" class="field"><option value="clinical">إكلينيكي</option><option value="educational">تربوي</option><option value="personality">شخصية</option></select></div>
-          <div><label class="field-label">ترتيب العرض</label><input id="a-sort" type="number" class="field" value="10" /></div>
+          <div><label class="field-label" for="a-slug">المعرّف (slug)</label><input id="a-slug" class="field" placeholder="bdi-ii" /></div>
+          <div><label class="field-label" for="a-version">الإصدار</label><input id="a-version" class="field" value="1.0" /></div>
+          <div><label class="field-label" for="a-title-ar">العنوان (للمتخصص)</label><input id="a-title-ar" class="field" /></div>
+          <div><label class="field-label" for="a-title-en">Title (English)</label><input id="a-title-en" class="field" /></div>
+          <div><label class="field-label" for="a-patient-ar">العنوان المعروض للمريض</label><input id="a-patient-ar" class="field" placeholder="أداة التقييم الإكلينيكي" /></div>
+          <div><label class="field-label" for="a-patient-en">Patient-facing title</label><input id="a-patient-en" class="field" /></div>
+          <div><label class="field-label" for="a-suite">الحقيبة</label><select id="a-suite" class="field"><option value="clinical">الحقيبة الإكلينيكية</option><option value="special">حقيبة الفئات الخاصة</option></select></div>
+          <div><label class="field-label" for="a-category">القسم (داخلي)</label><select id="a-category" class="field"><option value="clinical">إكلينيكي</option><option value="educational">تربوي</option><option value="personality">شخصية</option></select></div>
+          <div><label class="field-label" for="a-sort">ترتيب العرض</label><input id="a-sort" type="number" class="field" value="10" /></div>
         </div>
-        <div><label class="field-label">وصف الاختبار</label><textarea id="a-desc-ar" class="field" rows="2"></textarea></div>
-        <div><label class="field-label">تعليمات المريض</label><textarea id="a-instructions-ar" class="field" rows="2"></textarea></div>
+        <div><label class="field-label" for="a-desc-ar">وصف الاختبار</label><textarea id="a-desc-ar" class="field" rows="2"></textarea></div>
+        <div><label class="field-label" for="a-instructions-ar">تعليمات المريض</label><textarea id="a-instructions-ar" class="field" rows="2"></textarea></div>
         <div class="grid sm:grid-cols-3 gap-4">
-          <div><label class="field-label">حدود التصنيف (JSON)</label><textarea id="a-cutoffs" class="field font-en" rows="7" dir="ltr"></textarea></div>
-          <div><label class="field-label">قواعد التنبيهات (JSON)</label><textarea id="a-rules" class="field font-en" rows="7" dir="ltr"></textarea></div>
-          <div><label class="field-label">مقاييس التصحيح (JSON)</label><textarea id="a-scale-meta" class="field font-en" rows="7" dir="ltr"></textarea></div>
+          <div><label class="field-label" for="a-cutoffs">حدود التصنيف (JSON)</label><textarea id="a-cutoffs" class="field font-en" rows="7" dir="ltr"></textarea></div>
+          <div><label class="field-label" for="a-rules">قواعد التنبيهات (JSON)</label><textarea id="a-rules" class="field font-en" rows="7" dir="ltr"></textarea></div>
+          <div><label class="field-label" for="a-scale-meta">مقاييس التصحيح (JSON)</label><textarea id="a-scale-meta" class="field font-en" rows="7" dir="ltr"></textarea></div>
         </div>
         <label class="flex items-center gap-2 text-sm font-bold text-slate-700">
           <input id="a-active" type="checkbox" class="w-4 h-4 accent-emerald-700" checked> مفعّل وظاهر للمريض
@@ -341,7 +345,7 @@
 
         <div class="border-t border-slate-200 pt-5">
           <div class="flex items-center justify-between mb-3">
-            <h4 class="font-extrabold text-slate-900">البنود</h4>
+            <h3 class="font-extrabold text-slate-900">البنود</h3>
             <button id="add-item-btn" type="button" class="btn-ghost !py-1.5 !px-3"><i class="fa-solid fa-plus ml-1"></i> بند جديد</button>
           </div>
           <div id="items-editor" class="space-y-3"></div>
@@ -355,6 +359,6 @@
     </div>
   </div>
 
-  <script type="module" src="assets/specialist.js"></script>
+  <script type="module" src="assets/specialist.js?v=3"></script>
 </body>
 </html>
