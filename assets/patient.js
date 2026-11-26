@@ -10,6 +10,7 @@ const state = {
   answers: {},
   timer: null,
   submitting: false,
+  partialSubmit: false,
   loading: false,
   settings: {},
   ravenLayout: null
@@ -180,7 +181,7 @@ function renderCurrent(focusOption = false) {
   if (raven) {
     renderRaven(item, selected, focusOption);
   } else {
-    setText('auto-advance-hint', 'عند الاختيار ستنتقل تلقائياً إلى البند التالي. يمكنك الرجوع لتعديل إجابتك، أو استخدام زر الإنهاء في أي وقت.');
+    setText('auto-advance-hint', 'عند الاختيار ستنتقل تلقائياً إلى البند التالي. يمكنك الرجوع لتعديل إجابتك، أو استخدام زر الإنهاء أو التخطي في أي وقت.');
     const container = document.getElementById('options-container');
     container.className = 'space-y-3';
     container.setAttribute('aria-label', 'خيارات الإجابة');
@@ -264,20 +265,23 @@ function startRunner(assessment) {
   state.index = 0;
   state.answers = {};
   state.submitting = false;
+  state.partialSubmit = false;
   setText('runner-instructions', assessment.instructionsAr || 'اقرأ العبارات واختر الأقرب إلى شعورك.');
   document.getElementById('submit-error').classList.add('hidden');
   showStep('step-runner', 'options-container');
   renderCurrent(true);
 }
 
-async function submitSession() {
+async function submitSession(options = {}) {
   if (state.submitting || !state.assessment) return;
   cancelAdvance();
   const answers = Object.entries(state.answers)
     .map(([position, scores]) => ({ position: Number(position), scores }))
     .sort((a, b) => a.position - b.position);
 
-  if (answers.length !== totalItems()) {
+  const allowPartial = options.allowPartial === true || state.partialSubmit;
+  state.partialSubmit = allowPartial;
+  if (!allowPartial && answers.length !== totalItems()) {
     const missing = totalItems() - answers.length;
     showSubmitError(`يرجى الإجابة على جميع البنود قبل الإنهاء. متبقٍ ${missing} بنداً.`);
     return;
@@ -315,6 +319,14 @@ async function submitSession() {
     submitBtn.disabled = false;
     submitBtn.innerHTML = original;
   }
+}
+
+function skipSession() {
+  if (state.submitting || !state.assessment) return;
+  const confirmed = window.confirm('سيتم تسجيل إجاباتك الحالية فقط وإنهاء الجلسة. هل تريد المتابعة؟');
+  if (!confirmed) return;
+  state.partialSubmit = true;
+  submitSession();
 }
 
 function showSubmitError(message) {
@@ -368,6 +380,7 @@ async function startWithCode(code) {
 
 async function init() {
   document.getElementById('prev-btn').addEventListener('click', prevItem);
+  document.getElementById('skip-btn').addEventListener('click', skipSession);
   document.getElementById('runner-submit-btn').addEventListener('click', submitSession);
   document.getElementById('retry-submit-btn').addEventListener('click', submitSession);
   document.getElementById('intro-form').addEventListener('submit', e => {
