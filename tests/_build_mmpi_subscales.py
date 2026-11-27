@@ -234,7 +234,10 @@ SUBSCALES = [
      "البنود الواضحة من مقياس الهوس الخفيف حسب تصحيح واينر.",
      [13, 22, 59, 73, 97, 100, 156, 157, 167, 194, 212, 226, 238, 250, 251, 263, 266, 277, 279, 298],
      [111, 119, 120], {"M": (5.83, 2.84)}),
-    ("MAS", "Ma", "الهوس: البنود الغامضة", "Hypomania: subtle items",
+    # The correction appendix labels this Ma-S, but the research Manifest
+    # Anxiety scale already owns the key MAS in this platform, so the subscale
+    # uses MASUB internally while keeping the appendix wording as its label.
+    ("MASUB", "Ma", "الهوس: البنود الغامضة", "Hypomania: subtle items",
      "البنود الغامضة من مقياس الهوس الخفيف حسب تصحيح واينر.",
      [11, 21, 64, 109, 127, 134, 143, 181, 222, 228, 232, 233, 240, 271],
      [101, 105, 148, 166, 171, 180, 267, 289],
