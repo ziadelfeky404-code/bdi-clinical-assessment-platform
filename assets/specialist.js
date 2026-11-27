@@ -38,6 +38,7 @@ const SCALE_GROUP_LABELS = {
   validity: 'مقاييس الصدق',
   clinical: 'المقاييس الإكلينيكية',
   research: 'المقاييس الخاصة',
+  subscale: 'مجموعات البنود الفرعية',
   other: 'مقاييس أخرى'
 };
 
@@ -390,6 +391,28 @@ function reportPurpose(report) {
     || `تقييم ${report.snapshot?.assessmentTitleAr || 'الحالة النفسية'} باستخدام أداة معتمدة.`;
 }
 
+function scaleLabelFromMeta(key, snap) {
+  const entry = (snap?.scaleMeta || []).find(s => s && s.key === key);
+  return entry?.ar || key;
+}
+
+function subscaleSection(diagnoses, snap) {
+  const subscales = diagnoses.filter(d => (d.group || 'other') === 'subscale');
+  if (!subscales.length) return '';
+  const parents = [...new Set(subscales.map(d => d.parent).filter(Boolean))];
+  const hasRawOnly = subscales.some(d => d.normSource === 'unpublished');
+  return `
+    <section class="avoid-break mb-6">
+      <h3 class="font-extrabold text-slate-900 mb-2 text-sm flex items-center gap-2"><i class="fa-solid fa-sitemap text-emerald-700"></i> النتائج التفصيلية لمجموعات البنود الفرعية</h3>
+      <p class="text-[11px] leading-relaxed text-slate-600 mb-4">تُقرأ كل مجموعة فرعية داخل مقياسها الأساسي، ولا تُستخدم بديلاً عن التقييم الإكلينيكي المباشر.${hasRawOnly ? ' المجموعات التي لا تتوفر لها متوسطات وانحرافات معيارية منشورة تُعرض كدرجة خام فقط دون درجة تائية.' : ''}</p>
+      ${parents.map(parent => `
+        <div class="mb-5">
+          <h4 class="text-xs font-extrabold text-emerald-900 border-r-4 border-emerald-500 pr-3 mb-2">${escapeHtml(scaleLabelFromMeta(parent, snap))} <span class="font-en text-[10px] font-normal text-slate-500" dir="ltr">${escapeHtml(parent)}</span></h4>
+          ${diagnosisTable(subscales.filter(d => d.parent === parent))}
+        </div>`).join('')}
+    </section>`;
+}
+
 function diagnosisTable(diagnoses) {
   return `
     <div class="overflow-x-auto rounded-xl border border-slate-200">
@@ -630,6 +653,8 @@ function openReport(id) {
               </div>`).join('')}
           </div>
         </section>` : ''}`}
+
+    ${subscaleSection(diagnoses, snap)}
 
     ${alerts.length ? `
       <section class="avoid-break mb-6">

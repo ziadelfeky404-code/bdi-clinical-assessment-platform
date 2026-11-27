@@ -19,6 +19,7 @@ declare
   v_class_scores jsonb;
   v_value numeric;
   v_derived numeric;
+  v_component text;
   v_t_value numeric;
   v_updated integer := 0;
 begin
@@ -87,6 +88,32 @@ begin
       end if;
     end loop;
 
+    -- Composite subscales are sums of their already-scored components.
+    for v_def in select value from jsonb_array_elements(v_meta) as x(value)
+    loop
+      if v_def ? 'gender' and v_def ->> 'gender' <> v_gender then
+        continue;
+      end if;
+      if not (v_def ? 'compositeKeys' and v_def ? 'key' and v_def ? 'bands') then
+        continue;
+      end if;
+      -- Always recompute: older snapshots may contain a zero placeholder from
+      -- before composite keys were supported.
+      v_derived := 0;
+      for v_component in
+        select value from jsonb_array_elements_text(v_def -> 'compositeKeys')
+      loop
+        v_derived := v_derived + coalesce((v_raw ->> v_component)::numeric, 0);
+      end loop;
+      v_raw := jsonb_set(v_raw, array[v_def ->> 'key'], to_jsonb(v_derived), true);
+      if v_def ? 'mean' and v_def ? 'sd' and (v_def ->> 'sd')::numeric <> 0 then
+        v_t_value := round(50 + 10 * (
+          (v_derived - (v_def ->> 'mean')::numeric) / (v_def ->> 'sd')::numeric
+        ));
+        v_t_scores := jsonb_set(v_t_scores, array[v_def ->> 'key'], to_jsonb(v_t_value), true);
+      end if;
+    end loop;
+
     v_class_scores := v_raw || v_t_scores;
     v_diagnosis := '[]'::jsonb;
 
@@ -125,6 +152,8 @@ begin
           'score', v_class_scores ->> (v_def ->> 'key'),
           'tScore', v_t_scores ->> (v_def ->> 'key'),
           'rangeLabel', v_band ->> 'rangeLabel',
+          'normSource', coalesce(v_def ->> 'normSource', 'published'),
+          'parent', v_def ->> 'parent',
           'overviewAr', coalesce(v_def ->> 'overviewAr', ''),
           'diagnosisAr', v_band ->> 'ar'
         );

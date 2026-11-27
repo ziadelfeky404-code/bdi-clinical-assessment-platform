@@ -146,6 +146,8 @@ declare
   v_diagnosis_band jsonb;
   v_band jsonb;
   v_diagnosis_value numeric;
+  v_composite numeric;
+  v_component_key text;
 begin
   v_patient_gender := case
     when p_gender like '%ذكر%' then 'M'
@@ -312,6 +314,26 @@ begin
     end if;
   end loop;
 
+  -- Composite subscales are sums of their already-scored components.
+  for v_scale_def in select value from jsonb_array_elements(v_visible_scale_meta)
+  loop
+    if v_scale_def ? 'compositeKeys' and v_scale_def ? 'key' then
+      v_composite := 0;
+      for v_component_key in
+        select value from jsonb_array_elements_text(v_scale_def -> 'compositeKeys')
+      loop
+        v_composite := v_composite
+          + coalesce((v_scale_scores ->> v_component_key)::numeric, 0);
+      end loop;
+      v_scale_scores := jsonb_set(
+        v_scale_scores,
+        array[v_scale_def ->> 'key'],
+        to_jsonb(v_composite),
+        true
+      );
+    end if;
+  end loop;
+
   v_raw_scale_scores := v_scale_scores;
 
   v_class_scores := v_scale_scores;
@@ -359,6 +381,8 @@ begin
           'score', v_class_scores ->> (v_scale_def ->> 'key'),
           'tScore', v_scale_t_scores ->> (v_scale_def ->> 'key'),
           'rangeLabel', v_diagnosis_band ->> 'rangeLabel',
+          'normSource', coalesce(v_scale_def ->> 'normSource', 'published'),
+          'parent', v_scale_def ->> 'parent',
           'overviewAr', coalesce(v_scale_def ->> 'overviewAr', ''),
           'diagnosisAr', v_diagnosis_band ->> 'ar'
         );
