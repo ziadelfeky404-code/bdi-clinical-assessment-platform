@@ -10,7 +10,7 @@ const state = {
   answers: {},
   timer: null,
   submitting: false,
-  partialSubmit: false,
+  isSpecialist: false,
   loading: false,
   settings: {},
   ravenLayout: null
@@ -181,7 +181,7 @@ function renderCurrent(focusOption = false) {
   if (raven) {
     renderRaven(item, selected, focusOption);
   } else {
-    setText('auto-advance-hint', 'عند الاختيار ستنتقل تلقائياً إلى البند التالي. يمكنك الرجوع لتعديل إجابتك، أو استخدام زر الإنهاء أو التخطي في أي وقت.');
+    setText('auto-advance-hint', 'عند الاختيار ستنتقل تلقائياً إلى البند التالي. يمكنك الرجوع لتعديل إجابتك، أو استخدام زر الإنهاء في أي وقت.');
     const container = document.getElementById('options-container');
     container.className = 'space-y-3';
     container.setAttribute('aria-label', 'خيارات الإجابة');
@@ -265,23 +265,20 @@ function startRunner(assessment) {
   state.index = 0;
   state.answers = {};
   state.submitting = false;
-  state.partialSubmit = false;
   setText('runner-instructions', assessment.instructionsAr || 'اقرأ العبارات واختر الأقرب إلى شعورك.');
   document.getElementById('submit-error').classList.add('hidden');
   showStep('step-runner', 'options-container');
   renderCurrent(true);
 }
 
-async function submitSession(options = {}) {
+async function submitSession() {
   if (state.submitting || !state.assessment) return;
   cancelAdvance();
   const answers = Object.entries(state.answers)
     .map(([position, scores]) => ({ position: Number(position), scores }))
     .sort((a, b) => a.position - b.position);
 
-  const allowPartial = options.allowPartial === true || state.partialSubmit;
-  state.partialSubmit = allowPartial;
-  if (!allowPartial && answers.length !== totalItems()) {
+  if (answers.length !== totalItems()) {
     const missing = totalItems() - answers.length;
     showSubmitError(`يرجى الإجابة على جميع البنود قبل الإنهاء. متبقٍ ${missing} بنداً.`);
     return;
@@ -321,12 +318,34 @@ async function submitSession(options = {}) {
   }
 }
 
-function skipSession() {
-  if (state.submitting || !state.assessment) return;
-  const confirmed = window.confirm('سيتم تسجيل إجاباتك الحالية فقط وإنهاء الجلسة. هل تريد المتابعة؟');
+async function detectSpecialist() {
+  try {
+    const { data: auth } = await sb.auth.getUser();
+    if (!auth.user) return;
+    const { data, error } = await sb.rpc('is_specialist');
+    if (error || data !== true) return;
+    state.isSpecialist = true;
+    document.getElementById('autofill-btn').classList.remove('hidden');
+  } catch {
+    // Keep the demo control hidden for patients.
+  }
+}
+
+async function fillRemaining() {
+  if (!state.isSpecialist || state.submitting || !state.assessment) return;
+  const confirmed = window.confirm('سيتم تعبئة كل البنود المتبقية بإجابات تجريبية وإنشاء تقرير كامل. هل تريد المتابعة؟');
   if (!confirmed) return;
-  state.partialSubmit = true;
-  submitSession();
+
+  cancelAdvance();
+  state.assessment.items.forEach((item, index) => {
+    if (state.answers[item.position]) return;
+    const options = item.options || [];
+    if (!options.length) return;
+    const option = options[(item.position + index) % options.length];
+    state.answers[item.position] = [Number(option.score)];
+  });
+  renderCurrent(false);
+  await submitSession();
 }
 
 function showSubmitError(message) {
@@ -380,7 +399,7 @@ async function startWithCode(code) {
 
 async function init() {
   document.getElementById('prev-btn').addEventListener('click', prevItem);
-  document.getElementById('skip-btn').addEventListener('click', skipSession);
+  document.getElementById('autofill-btn').addEventListener('click', fillRemaining);
   document.getElementById('runner-submit-btn').addEventListener('click', submitSession);
   document.getElementById('retry-submit-btn').addEventListener('click', submitSession);
   document.getElementById('intro-form').addEventListener('submit', e => {
@@ -425,6 +444,7 @@ async function init() {
     console.warn('Settings load failed', e);
   }
 
+  await detectSpecialist();
   document.getElementById('access-code-input').focus({ preventScroll: true });
 }
 

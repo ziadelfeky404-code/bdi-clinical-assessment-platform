@@ -327,7 +327,6 @@ declare
   v_best_elevate numeric := -1;
   v_patient_gender text;
   v_visible_scale_meta jsonb := '[]'::jsonb;
-  v_partial boolean := false;
 begin
   v_patient_gender := case
     when p_gender like '%ذكر%' then 'M'
@@ -356,10 +355,9 @@ begin
     end if;
   end loop;
 
-  if jsonb_array_length(coalesce(p_answers, '[]'::jsonb)) > v_item_count then
-    raise exception 'إجابات غير صالحة';
+  if jsonb_array_length(coalesce(p_answers, '[]'::jsonb)) <> v_item_count then
+    raise exception 'يجب الإجابة على جميع البنود';
   end if;
-  v_partial := jsonb_array_length(coalesce(p_answers, '[]'::jsonb)) < v_item_count;
 
   v_code := 'PSY-' || to_char(now(), 'YYYYMMDD') || '-' || upper(substr(gen_random_uuid()::text, 1, 6));
 
@@ -481,10 +479,9 @@ begin
     end if;
   end loop;
 
-  if not v_partial then
-    for v_scale_def in select value from jsonb_array_elements(v_visible_scale_meta)
-    loop
-      if v_scale_def ? 'correctionKey' and v_scale_def ? 'correctionWeight'
+  for v_scale_def in select value from jsonb_array_elements(v_visible_scale_meta)
+  loop
+    if v_scale_def ? 'correctionKey' and v_scale_def ? 'correctionWeight'
        and v_scale_scores ? (v_scale_def->>'correctionKey') then
       v_scale_scores := jsonb_set(
         v_scale_scores,
@@ -555,19 +552,8 @@ begin
     end if;
   end loop;
 
-    if v_scale_cutoff is not null then
-      v_cutoff := v_scale_cutoff;
-    end if;
-  else
-    v_scale_t_scores := '{}'::jsonb;
-    v_class_scores := '{}'::jsonb;
-    v_cutoff := jsonb_build_object(
-      'key', 'incomplete',
-      'ar', 'غير مكتمل',
-      'en', 'Incomplete',
-      'descAr', 'أُجيب على جزء من البنود فقط، لذلك لا يُعتمد التفسير المرجعي لهذا التقرير.',
-      'descEn', 'Only part of the items were answered, so normative interpretation is not available.'
-    );
+  if v_scale_cutoff is not null then
+    v_cutoff := v_scale_cutoff;
   end if;
 
   insert into public.reports (
@@ -592,9 +578,6 @@ begin
       'examinerName', coalesce(nullif(trim(p_examiner), ''), ''),
       'notes', coalesce(p_notes, ''),
       'items', v_breakdown,
-      'partial', v_partial,
-      'answeredCount', jsonb_array_length(coalesce(p_answers, '[]'::jsonb)),
-      'totalItems', v_item_count,
       'scaleScores', v_class_scores,
       'scaleRaw', v_scale_scores,
       'scaleTScores', v_scale_t_scores,
@@ -608,8 +591,7 @@ begin
   return jsonb_build_object(
     'ok', true,
     'code', v_code,
-    'assessmentTitleAr', v_assessment.title_ar,
-    'partial', v_partial
+    'assessmentTitleAr', v_assessment.title_ar
   );
 end $$;
 

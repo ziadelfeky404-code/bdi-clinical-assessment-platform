@@ -379,17 +379,6 @@ function buildClinicalNarrative(report) {
   const critical = alerts.filter(a => a.severity === 'critical');
   const key = report.severity_key;
 
-  if (report.snapshot?.partial === true) {
-    const answered = Number(report.snapshot?.answeredCount) || 0;
-    const total = Number(report.snapshot?.totalItems) || 0;
-    return {
-      diagnosis: `تقرير غير مكتمل: أُجيب على ${answered} من ${total} بنداً. لا يُستخدم هذا التقرير للتفسير المرجعي؛ يلزم استكمال الأداة لإصدار تفسير كامل.`,
-      strengths: ['الاستجابات المتاحة موثقة كما قدمها المفحوص.'],
-      weaknesses: ['لم تُجب عن باقي البنود، لذلك لا يمكن تفسير النتيجة بالمقاييس المرجعية.'],
-      recommendations: ['إعادة التقييم باستخدام الأداة كاملة عند الحاجة إلى تفسير سريري معتمد.']
-    };
-  }
-
   const meaning = {
     minimal: 'لا توجد مؤشرات ذات دلالة سريرية على اضطراب في الحالة النفسية ضمن استجابات هذه الأداة.',
     mild: 'مؤشرات خفيفة على ضغط في الحالة النفسية، تُقرأ ضمن السياق الإكلينيكي العام.',
@@ -496,10 +485,6 @@ function openReport(id) {
       <h2 class="text-2xl font-extrabold text-slate-900">${escapeHtml(snap.assessmentTitleAr || 'تقرير التقييم')}</h2>
       <p class="font-en text-sm font-bold text-emerald-700 mt-1">${escapeHtml(snap.assessmentTitleEn || '')}</p>
       <p class="text-xs text-slate-500 mt-2">نسخة الأداة: ${escapeHtml(r.version)} • ${formatDate(r.created_at, true)}</p>
-      ${snap.partial === true ? `
-        <p class="mt-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-xs font-bold text-amber-900">
-          تقرير غير مكتمل: أُجيب على ${escapeHtml(String(snap.answeredCount ?? 0))} من ${escapeHtml(String(snap.totalItems ?? 0))} بنداً. لا يُستخدم للتفسير المرجعي.
-        </p>` : ''}
     </div>
 
     <div class="grid sm:grid-cols-2 gap-4 mb-6">
