@@ -380,6 +380,42 @@ function shortLabel(text, max = 64) {
   return value.length > max ? `${value.slice(0, max)}…` : value;
 }
 
+function assessmentForReport(report) {
+  return state.assessments.find(a => a.id === report.assessment_id) || null;
+}
+
+function reportPurpose(report) {
+  const assessment = assessmentForReport(report);
+  return String(assessment?.description_ar || '').trim()
+    || `تقييم ${report.snapshot?.assessmentTitleAr || 'الحالة النفسية'} باستخدام أداة معتمدة.`;
+}
+
+function diagnosisTable(diagnoses) {
+  return `
+    <div class="overflow-x-auto rounded-xl border border-slate-200">
+      <table class="w-full min-w-[760px] text-right text-xs">
+        <thead class="bg-slate-50 text-slate-500 border-b border-slate-200">
+          <tr>
+            <th class="py-2 px-3">المقياس</th><th class="py-2 px-3">الوصف</th>
+            <th class="py-2 px-3" dir="ltr">خام</th><th class="py-2 px-3" dir="ltr">T</th>
+            <th class="py-2 px-3">النطاق</th><th class="py-2 px-3">التفسير</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${diagnoses.map(d => `
+            <tr class="border-b border-slate-100 align-top">
+              <td class="py-2 px-3 font-extrabold text-slate-900" dir="ltr">${escapeHtml(d.key || '')}</td>
+              <td class="py-2 px-3 font-bold text-slate-700">${escapeHtml(d.ar || d.key || '')}</td>
+              <td class="py-2 px-3 font-bold text-emerald-800" dir="ltr">${escapeHtml(String(d.raw ?? '—'))}</td>
+              <td class="py-2 px-3 font-bold text-emerald-800" dir="ltr">${d.tScore === undefined || d.tScore === null ? '—' : escapeHtml(String(d.tScore))}</td>
+              <td class="py-2 px-3"><span class="rounded-lg bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-800 whitespace-nowrap">${escapeHtml(d.rangeLabel || '')}</span></td>
+              <td class="py-2 px-3 leading-relaxed text-slate-700">${escapeHtml(d.diagnosisAr || '')}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
 function buildClinicalNarrative(report) {
   const items = report.snapshot?.items || [];
   const alerts = report.alerts || [];
@@ -415,6 +451,10 @@ function buildClinicalNarrative(report) {
 
   const scaleScores = report.snapshot?.scaleScores || {};
   const validityKeys = new Set(['L', 'F', 'K', 'Q']);
+  const validityText = [...validityKeys]
+    .filter(k => Number.isFinite(Number(scaleScores[k])))
+    .map(k => `${k}: ${Number(scaleScores[k]).toFixed(Number.isInteger(scaleScores[k]) ? 0 : 1)}`)
+    .join('، ');
   const interpretiveMeta = (report.snapshot?.scaleMeta || []).filter(s =>
     s && s.key && !s.hidden && !validityKeys.has(s.key) && Number.isFinite(Number(scaleScores[s.key])));
   // Scales carrying raw mean/sd are converted to T scores by the server.
@@ -473,7 +513,32 @@ function buildClinicalNarrative(report) {
   }
   recommendations.push('تُعد هذه الصياغة مساعدة قرار آلية مبنية على الاستجابات، ولا تُغني عن الحكم الإكلينيكي المتخصص.');
 
-  return { diagnosis, strengths, weaknesses, recommendations };
+  const approximateNorms = (report.snapshot?.scaleMeta || [])
+    .filter(s => s && s.normSource === 'approximate')
+    .map(s => s.ar || s.key);
+  const integration = [
+    validityText
+      ? `قُرئت النتائج بعد فحص مقاييس الصلاحية (${validityText})، دون أي استنتاج نهائي قبل مراجعة نمط الاستجابة كاملاً.`
+      : 'قُرئت النتائج دون مقاييس صلاحية متاحة في هذه النسخة، ولذلك يُنظر إلى التفسير بوصفه أولياً.',
+    highScales.length
+      ? `وتتركز المؤشرات المرتفعة في ${highScales.slice(0, 5).map(s => s.ar || s.key).join('، ')}، بينما تظهر مؤشرات أقل في ${lowScales.slice(0, 5).map(s => s.ar || s.key).join('، ') || 'عدد محدود من المقاييس'}.`
+      : 'ولا تظهر ارتفاعات لافتة تتجاوز العتبات المعتمدة في هذه الأداة.',
+    critical.length
+      ? 'ويستوجب وجود بنود حرجة فحصاً مباشراً لمخاطر الإيذاء النفس قبل اعتماد أي خطة.'
+      : alerts.length
+        ? 'وتوجد بنود إضافية تستحق مناقشتها في الجلسة الإكلينيكية التالية.'
+        : 'ولا توجد بنود حرجة مستقلة تستدعي إجراءً عاجلاً خارج التوصيات العامة.'
+  ].join(' ');
+
+  const limitations = [
+    'الاستدلال مبني على استجابات ذاتية في جلسة تطبيق واحدة، ولا يُغني عن المقابلة الإكلينيكية أو معلومات من مصادر أخرى.',
+    'الصياغة الآلية مساعد قرار؛ ويعتمد اعتماد التقرير على حكم الأخصائي في ضوء السياق النمائي والثقافي والحالة الراهنة.',
+    approximateNorms.length
+      ? `المعايير المعيارية للمقاييس ${approximateNorms.join('، ')} تقريبية لعدم توفر متوسطات منشورة في ملحق التصحيح؛ ولذلك تُقرأ درجاتها بحذر.`
+      : ''
+  ].filter(Boolean);
+
+  return { diagnosis, strengths, weaknesses, recommendations, integration, limitations };
 }
 
 function openReport(id) {
@@ -483,18 +548,28 @@ function openReport(id) {
   const snap = r.snapshot || {};
   const alerts = r.alerts || [];
   const items = snap.items || [];
-  const narrative = r.narrative || buildClinicalNarrative(r);
+  const narrative = buildClinicalNarrative(r);
+  if (r.narrative) Object.assign(narrative, r.narrative);
+  const diagnoses = snap.scaleDiagnosis || [];
+  const validityDiagnoses = diagnoses.filter(d => (d.group || 'other') === 'validity');
+  const interpretiveDiagnoses = diagnoses.filter(d => (d.group || 'other') !== 'validity');
   document.getElementById('report-edit-panel').classList.add('hidden');
   document.getElementById('report-modal-body').classList.remove('hidden');
 
   document.getElementById('report-modal-body').innerHTML = `
-    <div class="border-b border-slate-200 pb-5 mb-5">
-      <h2 class="text-2xl font-extrabold text-slate-900">${escapeHtml(snap.assessmentTitleAr || 'تقرير التقييم')}</h2>
-      <p class="font-en text-sm font-bold text-emerald-700 mt-1">${escapeHtml(snap.assessmentTitleEn || '')}</p>
-      <p class="text-xs text-slate-500 mt-2">نسخة الأداة: ${escapeHtml(r.version)} • ${formatDate(r.created_at, true)}</p>
+    <div class="border-b border-slate-200 pb-5 mb-6">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <p class="text-[10px] font-extrabold tracking-wide text-emerald-700">تقرير تقييم نفسي — سري</p>
+          <h2 class="text-2xl font-extrabold text-slate-900 mt-1">${escapeHtml(snap.assessmentTitleAr || 'تقرير التقييم')}</h2>
+          <p class="font-en text-sm font-bold text-emerald-700 mt-1">${escapeHtml(snap.assessmentTitleEn || '')}</p>
+        </div>
+        <span class="shrink-0 rounded-lg px-3 py-1 text-[10px] font-bold ${r.review_status === 'approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">${r.review_status === 'approved' ? 'معتمد' : 'مسودة'}</span>
+      </div>
+      <p class="text-xs text-slate-500 mt-3">رقم التقرير: <span dir="ltr">${escapeHtml(String(r.id).slice(0, 8))}</span> • رمز الجلسة: <span dir="ltr">${escapeHtml(snap.patientCode || '—')}</span> • ${formatDate(r.created_at, true)} • نسخة الأداة: ${escapeHtml(r.version)}</p>
     </div>
 
-    <div class="grid sm:grid-cols-2 gap-4 mb-6">
+    <section class="grid sm:grid-cols-2 gap-4 mb-6 avoid-break">
       <div class="rounded-xl bg-slate-50 border border-slate-200 p-4 text-sm space-y-1.5">
         <p><span class="text-slate-500">المفحوص:</span> <strong>${escapeHtml(snap.patientName || '—')}</strong></p>
         <p><span class="text-slate-500">العمر:</span> <strong>${snap.patientAge ? escapeHtml(snap.patientAge) + ' سنة' : '—'}</strong></p>
@@ -508,16 +583,57 @@ function openReport(id) {
         <p class="font-en text-xs font-bold opacity-80">${escapeHtml(r.severity_en)}</p>
         <p class="text-xs leading-relaxed mt-3">${escapeHtml(r.severity_desc_ar || '')}</p>
       </div>
-    </div>
+    </section>
 
-    <div class="avoid-break mb-6 rounded-xl border-2 p-5 ${TONE_BY_KEY[r.severity_key] || 'tone-slate'}">
-      <h3 class="font-extrabold mb-2 flex items-center gap-2 text-sm"><i class="fa-solid fa-stethoscope"></i> التشخيص المبدئي</h3>
-      <p class="text-xs leading-relaxed font-semibold">${escapeHtml(narrative.diagnosis)}</p>
-    </div>
+    <section class="avoid-break mb-6 rounded-xl border border-emerald-200 bg-emerald-50/50 p-5">
+      <h3 class="font-extrabold text-emerald-900 mb-3 text-sm flex items-center gap-2"><i class="fa-solid fa-circle-info text-emerald-700"></i> 1) الملخص التنفيذي: الغرض والاستنتاج</h3>
+      <div class="grid sm:grid-cols-2 gap-4 text-xs leading-relaxed text-slate-700">
+        <div><p class="font-bold text-slate-500 mb-1">الغرض من التقييم</p><p>${escapeHtml(reportPurpose(r))}</p></div>
+        <div><p class="font-bold text-slate-500 mb-1">الأداة والإجراءات</p><p>${escapeHtml(snap.assessmentTitleAr || '—')} — ${items.length} بنداً، نسخة ${escapeHtml(r.version)}، ${formatDate(r.created_at, true)}.</p></div>
+      </div>
+      <p class="text-xs leading-relaxed font-semibold text-slate-800 mt-4 border-t border-emerald-200 pt-3"><span class="font-extrabold text-emerald-900">الاستنتاج المختصر:</span> ${escapeHtml(narrative.diagnosis)}</p>
+    </section>
+
+    <section class="avoid-break mb-6">
+      <h3 class="font-extrabold text-slate-900 mb-2 text-sm flex items-center gap-2"><i class="fa-solid fa-layer-group text-emerald-700"></i> 2) التكامل والتفسير الإكلينيكي</h3>
+      <p class="text-xs leading-relaxed text-slate-700">${escapeHtml(narrative.integration)}</p>
+    </section>
+
+    ${validityDiagnoses.length ? `
+      <section class="avoid-break mb-6">
+        <h3 class="font-extrabold text-slate-900 mb-2 text-sm flex items-center gap-2"><i class="fa-solid fa-shield-halved text-emerald-700"></i> 3) صلاحية الاستجابات</h3>
+        <p class="text-[11px] leading-relaxed text-slate-600 mb-3">تُقرأ بقية النتائج في ضوء هذه المقاييس؛ فارتفاعها قد يغير تفسير المقاييس الأخرى.</p>
+        ${diagnosisTable(validityDiagnoses)}
+      </section>` : ''}
+
+    ${interpretiveDiagnoses.length ? `
+      <section class="avoid-break mb-6">
+        <h3 class="font-extrabold text-slate-900 mb-3 text-sm flex items-center gap-2"><i class="fa-solid fa-clipboard-list text-emerald-700"></i> ${validityDiagnoses.length ? '4' : '3'}) النتائج والتفسير حسب مجموعات البنود</h3>
+        ${['clinical', 'research', 'other'].filter(group =>
+          interpretiveDiagnoses.some(d => (d.group || 'other') === group)
+        ).map(group => `
+          <div class="mb-5">
+            <h4 class="text-xs font-extrabold text-emerald-900 border-r-4 border-emerald-600 pr-3 mb-2">${escapeHtml(SCALE_GROUP_LABELS[group] || group)}</h4>
+            ${diagnosisTable(interpretiveDiagnoses.filter(d => (d.group || 'other') === group))}
+            <p class="text-[11px] leading-relaxed text-slate-500 mt-2">${escapeHtml([...new Set(interpretiveDiagnoses.filter(d => (d.group || 'other') === group).map(d => d.overviewAr).filter(Boolean))].join(' '))}</p>
+          </div>`).join('')}
+      </section>` : `
+      ${Object.keys(snap.scaleScores || {}).length ? `
+        <section class="avoid-break mb-6">
+          <h3 class="font-extrabold text-slate-900 mb-3 text-sm flex items-center gap-2"><i class="fa-solid fa-chart-simple text-emerald-700"></i> 3) الدرجات على المقاييس الفرعية</h3>
+          <div class="grid sm:grid-cols-3 gap-3">
+            ${(snap.scaleMeta || []).filter(s => s && s.key && !s.hidden && snap.scaleScores[s.key] !== undefined).map(s => `
+              <div class="rounded-xl border border-slate-200 bg-white p-4">
+                <p class="text-xs font-bold text-slate-800">${escapeHtml(s.ar || s.key)}</p>
+                <p class="font-en text-[10px] text-slate-400">${escapeHtml(s.en || s.key)}</p>
+                <p class="text-xl font-extrabold text-emerald-800 mt-2" dir="ltr">${Number(snap.scaleScores[s.key]).toFixed(Number.isInteger(snap.scaleScores[s.key]) ? 0 : 1)}</p>
+              </div>`).join('')}
+          </div>
+        </section>` : ''}`}
 
     ${alerts.length ? `
-      <div class="mb-6">
-        <h3 class="font-extrabold text-rose-800 mb-3 flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation"></i> التنبيهات الإكلينيكية</h3>
+      <section class="avoid-break mb-6">
+        <h3 class="font-extrabold text-rose-800 mb-3 text-sm flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation"></i> التنبيهات الإكلينيكية</h3>
         <div class="space-y-3">
           ${alerts.map(a => `
             <div class="rounded-xl border ${a.severity === 'critical' ? 'border-rose-300 bg-rose-50' : 'border-amber-300 bg-amber-50'} p-4">
@@ -526,45 +642,9 @@ function openReport(id) {
               <p class="font-en text-[11px] font-bold text-slate-500 mt-2">${escapeHtml(a.titleEn)}</p>
             </div>`).join('')}
         </div>
-      </div>` : ''}
+      </section>` : ''}
 
-    ${Object.keys(snap.scaleScores || {}).length ? `
-      <div class="mb-6">
-        <h3 class="font-extrabold text-slate-900 mb-3 flex items-center gap-2"><i class="fa-solid fa-chart-simple text-emerald-700"></i> الدرجات على المقاييس الفرعية</h3>
-        <div class="grid sm:grid-cols-3 gap-3">
-          ${(snap.scaleMeta || []).filter(s => s && s.key && !s.hidden && snap.scaleScores[s.key] !== undefined).map(s => `
-            <div class="rounded-xl border border-slate-200 bg-white p-4">
-              <p class="text-xs font-bold text-slate-800">${escapeHtml(s.ar || s.key)}</p>
-              <p class="font-en text-[10px] text-slate-400">${escapeHtml(s.en || s.key)}</p>
-              <p class="text-xl font-extrabold text-emerald-800 mt-2" dir="ltr">${Number(snap.scaleScores[s.key]).toFixed(Number.isInteger(snap.scaleScores[s.key]) ? 0 : 1)}</p>
-            </div>`).join('')}
-        </div>
-      </div>` : ''}
-
-    ${(snap.scaleDiagnosis || []).length ? `
-      <div class="mb-6 avoid-break">
-        <h3 class="font-extrabold text-slate-900 mb-3 flex items-center gap-2"><i class="fa-solid fa-clipboard-list text-emerald-700"></i> التشخيص حسب مجموعات البنود</h3>
-        ${['validity', 'clinical', 'research', 'other'].filter(group =>
-          (snap.scaleDiagnosis || []).some(d => (d.group || 'other') === group)
-        ).map(group => `
-          <div class="mb-5">
-            <h4 class="text-xs font-extrabold text-emerald-900 border-r-4 border-emerald-600 pr-3 mb-2">${escapeHtml(SCALE_GROUP_LABELS[group] || group)}</h4>
-            <div class="grid sm:grid-cols-2 gap-3">
-              ${(snap.scaleDiagnosis || []).filter(d => (d.group || 'other') === group).map(d => `
-                <div class="rounded-xl border border-slate-200 bg-white p-4">
-                  <div class="flex items-start justify-between gap-3">
-                    <p class="text-sm font-extrabold text-slate-900">${escapeHtml(d.ar || d.key)}</p>
-                    <span class="shrink-0 rounded-lg bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-800" dir="ltr">${escapeHtml(d.rangeLabel || '')}</span>
-                  </div>
-                  <p class="text-[11px] leading-relaxed text-slate-500 mt-1">${escapeHtml(d.overviewAr || '')}</p>
-                  <p class="text-xs font-bold text-slate-700 mt-3" dir="ltr">خام ${escapeHtml(String(d.raw ?? '—'))}${d.tScore !== undefined && d.tScore !== null ? ` • T ${escapeHtml(String(d.tScore))}` : ''}</p>
-                  <p class="text-xs leading-relaxed text-slate-700 mt-2">${escapeHtml(d.diagnosisAr || '')}</p>
-                </div>`).join('')}
-            </div>
-          </div>`).join('')}
-      </div>` : ''}
-
-    <div class="grid sm:grid-cols-2 gap-4 mb-6 avoid-break">
+    <section class="grid sm:grid-cols-2 gap-4 mb-6 avoid-break">
       <div class="rounded-xl border border-emerald-200 bg-emerald-50/60 p-5">
         <h3 class="font-extrabold text-emerald-900 mb-3 text-sm flex items-center gap-2"><i class="fa-solid fa-circle-check"></i> نقاط القوة</h3>
         <ul class="space-y-2">
@@ -572,23 +652,42 @@ function openReport(id) {
         </ul>
       </div>
       <div class="rounded-xl border border-amber-200 bg-amber-50/60 p-5">
-        <h3 class="font-extrabold text-amber-900 mb-3 text-sm flex items-center gap-2"><i class="fa-solid fa-circle-exclamation"></i> نقاط الضعف</h3>
+        <h3 class="font-extrabold text-amber-900 mb-3 text-sm flex items-center gap-2"><i class="fa-solid fa-circle-exclamation"></i> مجالات النمو</h3>
         <ul class="space-y-2">
           ${narrative.weaknesses.map(s => `<li class="text-xs leading-relaxed text-slate-700 flex gap-2"><i class="fa-solid fa-minus text-amber-700 mt-0.5"></i><span>${escapeHtml(s)}</span></li>`).join('')}
         </ul>
       </div>
-    </div>
+    </section>
 
-    <div class="avoid-break mb-6 rounded-xl border border-slate-200 bg-slate-50 p-5">
-      <h3 class="font-extrabold text-slate-900 mb-3 text-sm flex items-center gap-2"><i class="fa-solid fa-list-check text-emerald-700"></i> التوصيات</h3>
+    <section class="avoid-break mb-6 rounded-xl border border-slate-200 bg-slate-50 p-5">
+      <h3 class="font-extrabold text-slate-900 mb-3 text-sm flex items-center gap-2"><i class="fa-solid fa-list-check text-emerald-700"></i> التوصيات وخطة المتابعة</h3>
       <ol class="space-y-2 list-decimal list-inside">
         ${narrative.recommendations.map(s => `<li class="text-xs leading-relaxed text-slate-700">${escapeHtml(s)}</li>`).join('')}
       </ol>
-    </div>
+    </section>
 
-    <div class="avoid-break">
-      <h3 class="font-extrabold text-slate-900 mb-3">تفصيل البنود</h3>
-      <div class="overflow-x-auto rounded-xl border border-slate-200">
+    <section class="avoid-break mb-6 rounded-xl border border-slate-200 bg-white p-5">
+      <h3 class="font-extrabold text-slate-900 mb-2 text-sm flex items-center gap-2"><i class="fa-solid fa-circle-exclamation text-slate-500"></i> القيود والسياق</h3>
+      <ul class="space-y-1.5 list-disc list-inside">
+        ${narrative.limitations.map(s => `<li class="text-xs leading-relaxed text-slate-700">${escapeHtml(s)}</li>`).join('')}
+      </ul>
+    </section>
+
+    ${r.clinical_notes ? `
+      <section class="avoid-break mb-6 rounded-xl border border-indigo-200 bg-indigo-50/60 p-5">
+        <h3 class="font-extrabold text-indigo-900 mb-2 text-sm flex items-center gap-2"><i class="fa-solid fa-note-sticky"></i> ملاحظات إكلينيكية</h3>
+        <p class="text-xs leading-relaxed text-slate-700 whitespace-pre-line">${escapeHtml(r.clinical_notes)}</p>
+      </section>` : ''}
+
+    ${r.review_status === 'approved' ? `
+      <section class="avoid-break mb-6 rounded-xl border-2 border-emerald-200 bg-emerald-50 p-4 flex items-center gap-3">
+        <i class="fa-solid fa-circle-check text-emerald-700"></i>
+        <p class="text-xs font-bold text-emerald-900">معتمد من ${escapeHtml(r.reviewed_by_name || 'متخصص')} ${r.reviewed_at ? '• ' + formatDate(r.reviewed_at, true) : ''}</p>
+      </section>` : ''}
+
+    <details class="avoid-break mb-6 rounded-xl border border-slate-200 bg-white">
+      <summary class="cursor-pointer p-4 text-sm font-extrabold text-slate-900">ملحق: تفصيل البنود (${items.length} بنداً)</summary>
+      <div class="overflow-x-auto border-t border-slate-200">
         <table class="w-full min-w-[620px] text-right text-xs">
           <thead class="bg-slate-50 text-slate-500 border-b border-slate-200">
             <tr><th class="py-2 px-3">#</th><th class="py-2 px-3">البند</th><th class="py-2 px-3">الاستجابة</th><th class="py-2 px-3">الدرجة</th></tr>
@@ -604,19 +703,13 @@ function openReport(id) {
           </tbody>
         </table>
       </div>
-    </div>
+    </details>
 
-    ${r.clinical_notes ? `
-      <div class="avoid-break mb-6 rounded-xl border border-indigo-200 bg-indigo-50/60 p-5">
-        <h3 class="font-extrabold text-indigo-900 mb-2 text-sm flex items-center gap-2"><i class="fa-solid fa-note-sticky"></i> ملاحظات إكلينيكية</h3>
-        <p class="text-xs leading-relaxed text-slate-700 whitespace-pre-line">${escapeHtml(r.clinical_notes)}</p>
-      </div>` : ''}
-
-    ${r.review_status === 'approved' ? `
-      <div class="avoid-break mb-6 rounded-xl border-2 border-emerald-200 bg-emerald-50 p-4 flex items-center gap-3">
-        <i class="fa-solid fa-circle-check text-emerald-700"></i>
-        <p class="text-xs font-bold text-emerald-900">معتمد من ${escapeHtml(r.reviewed_by_name || 'متخصص')} ${r.reviewed_at ? '• ' + formatDate(r.reviewed_at, true) : ''}</p>
-      </div>` : ''}
+    <section class="avoid-break mb-6 rounded-xl border border-slate-200 bg-slate-50 p-4 text-[11px] leading-relaxed text-slate-600">
+      <p class="font-extrabold text-slate-800 mb-1">أساس إعداد التقرير</p>
+      <p>رُوعي في تنظيم هذا التقرير أن يبدأ بالغرض والاستنتاج، ويربط النتائج بتفسير متكامل، ويفصل صلاحية الاستجابات عن بقية المقاييس، ويختتم بتوصيات وقيود واضحة، وفق:</p>
+      <p class="mt-1"><a class="text-emerald-700 underline" href="https://www.apa.org/about/policy/guidelines-psychological-assessment-evaluation.pdf" target="_blank" rel="noopener">APA Guidelines for Psychological Assessment and Evaluation (2020)</a> • <a class="text-emerald-700 underline" href="https://www.apa.org/monitor/2020/03/career-write-reports" target="_blank" rel="noopener">How to write more useful assessment reports</a>.</p>
+    </section>
 
     <div class="grid grid-cols-2 gap-8 text-center text-xs text-slate-700 mt-10 pt-6 border-t border-slate-200 avoid-break">
       <div><p class="font-bold mb-8">توقيع الأخصائي النفسي</p><div class="w-48 mx-auto border-b border-dashed border-slate-400"></div></div>
