@@ -114,6 +114,20 @@ begin
       end if;
     end loop;
 
+    -- Older snapshots can hold T scores that were calculated before a group
+    -- was marked as having no published norms. Drop those so the group stays
+    -- raw-only in both the table and the stored scores.
+    for v_def in select value from jsonb_array_elements(v_meta) as x(value)
+    loop
+      if v_def ? 'gender' and v_def ->> 'gender' <> v_gender then
+        continue;
+      end if;
+      if v_def ? 'key' and coalesce(v_def ->> 'normSource', 'published') = 'unpublished'
+         and v_t_scores ? (v_def ->> 'key') then
+        v_t_scores := v_t_scores - (v_def ->> 'key');
+      end if;
+    end loop;
+
     v_class_scores := v_raw || v_t_scores;
     v_diagnosis := '[]'::jsonb;
 
@@ -164,8 +178,11 @@ begin
     set snapshot = jsonb_set(
       jsonb_set(
         jsonb_set(
-          jsonb_set(rp.snapshot, '{scaleDiagnosis}', v_diagnosis, true),
-          '{scaleRaw}', v_raw, true
+          jsonb_set(
+            jsonb_set(rp.snapshot, '{scaleDiagnosis}', v_diagnosis, true),
+            '{scaleRaw}', v_raw, true
+          ),
+          '{scaleScores}', v_raw || v_t_scores, true
         ),
         '{scaleTScores}', v_t_scores, true
       ),
