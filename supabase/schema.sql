@@ -336,9 +336,8 @@ declare
   v_component_key text;
 begin
   v_patient_gender := case
-    when p_gender like '%ذكر%' then 'M'
     when p_gender like '%أنثى%' then 'F'
-    else ''
+    else 'M'
   end;
   select * into v_assessment
   from public.assessments

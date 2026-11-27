@@ -37,12 +37,11 @@ begin
     join public.assessments a on a.id = rp.assessment_id
     where a.slug = 'mmpi-566'
       and coalesce(rp.severity_key, '') <> 'incomplete'
-      and (select count(*) from jsonb_object_keys(coalesce(rp.snapshot -> 'scaleRaw', '{}'::jsonb))) > 1
+      and exists (select 1 from public.answers a where a.session_id = rp.session_id)
   loop
     v_gender := case
-      when coalesce(r.snapshot ->> 'patientGender', '') like '%ذكر%' then 'M'
       when coalesce(r.snapshot ->> 'patientGender', '') like '%أنثى%' then 'F'
-      else ''
+      else 'M'
     end;
     v_raw := coalesce(r.snapshot -> 'scaleRaw', '{}'::jsonb);
     v_t_scores := coalesce(r.snapshot -> 'scaleTScores', '{}'::jsonb);
