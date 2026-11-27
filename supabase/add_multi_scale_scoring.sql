@@ -141,6 +141,11 @@ declare
   v_best_elevate numeric := -1;
   v_patient_gender text;
   v_visible_scale_meta jsonb := '[]'::jsonb;
+  v_raw_scale_scores jsonb;
+  v_scale_diagnosis jsonb := '[]'::jsonb;
+  v_diagnosis_band jsonb;
+  v_band jsonb;
+  v_diagnosis_value numeric;
 begin
   v_patient_gender := case
     when p_gender like '%ذكر%' then 'M'
@@ -307,6 +312,8 @@ begin
     end if;
   end loop;
 
+  v_raw_scale_scores := v_scale_scores;
+
   v_class_scores := v_scale_scores;
 
   for v_scale_def in select value from jsonb_array_elements(v_visible_scale_meta)
@@ -324,6 +331,38 @@ begin
         to_jsonb(v_t_score),
         true
       );
+    end if;
+  end loop;
+
+  for v_scale_def in select value from jsonb_array_elements(v_visible_scale_meta)
+  loop
+    if v_scale_def ? 'bands' and v_scale_def ? 'key'
+       and v_class_scores ? (v_scale_def ->> 'key') then
+      v_diagnosis_value := (v_class_scores ->> (v_scale_def ->> 'key'))::numeric;
+      v_diagnosis_band := null;
+      for v_band in select value from jsonb_array_elements(v_scale_def -> 'bands')
+      loop
+        if (v_band ->> 'min') is null or v_diagnosis_value >= (v_band ->> 'min')::numeric then
+          if (v_band ->> 'max') is null or v_diagnosis_value <= (v_band ->> 'max')::numeric then
+            v_diagnosis_band := v_band;
+            exit;
+          end if;
+        end if;
+      end loop;
+      if v_diagnosis_band is not null then
+        v_scale_diagnosis := v_scale_diagnosis || jsonb_build_object(
+          'key', v_scale_def ->> 'key',
+          'group', coalesce(v_scale_def ->> 'group', 'other'),
+          'ar', coalesce(v_scale_def ->> 'diagnosisLabel', v_scale_def ->> 'ar', v_scale_def ->> 'key'),
+          'en', coalesce(v_scale_def ->> 'en', ''),
+          'raw', v_raw_scale_scores ->> (v_scale_def ->> 'key'),
+          'score', v_class_scores ->> (v_scale_def ->> 'key'),
+          'tScore', v_scale_t_scores ->> (v_scale_def ->> 'key'),
+          'rangeLabel', v_diagnosis_band ->> 'rangeLabel',
+          'overviewAr', coalesce(v_scale_def ->> 'overviewAr', ''),
+          'diagnosisAr', v_diagnosis_band ->> 'ar'
+        );
+      end if;
     end if;
   end loop;
 
@@ -395,6 +434,7 @@ begin
       'scaleScores', v_class_scores,
       'scaleRaw', v_scale_scores,
       'scaleTScores', v_scale_t_scores,
+      'scaleDiagnosis', v_scale_diagnosis,
       'scaleMeta', v_visible_scale_meta
     ),
     v_assessment.version

@@ -34,6 +34,13 @@ const TONE_BY_KEY = {
   average: 'tone-emerald', above: 'tone-sky', superior: 'tone-amber'
 };
 
+const SCALE_GROUP_LABELS = {
+  validity: 'مقاييس الصدق',
+  clinical: 'المقاييس الإكلينيكية',
+  research: 'المقاييس الخاصة',
+  other: 'مقاييس أخرى'
+};
+
 const SUITE_LABELS = {
   clinical: 'الحقيبة الإكلينيكية',
   special: 'حقيبة الفئات الخاصة'
@@ -532,6 +539,29 @@ function openReport(id) {
               <p class="text-xl font-extrabold text-emerald-800 mt-2" dir="ltr">${Number(snap.scaleScores[s.key]).toFixed(Number.isInteger(snap.scaleScores[s.key]) ? 0 : 1)}</p>
             </div>`).join('')}
         </div>
+      </div>` : ''}
+
+    ${(snap.scaleDiagnosis || []).length ? `
+      <div class="mb-6 avoid-break">
+        <h3 class="font-extrabold text-slate-900 mb-3 flex items-center gap-2"><i class="fa-solid fa-clipboard-list text-emerald-700"></i> التشخيص حسب مجموعات البنود</h3>
+        ${['validity', 'clinical', 'research', 'other'].filter(group =>
+          (snap.scaleDiagnosis || []).some(d => (d.group || 'other') === group)
+        ).map(group => `
+          <div class="mb-5">
+            <h4 class="text-xs font-extrabold text-emerald-900 border-r-4 border-emerald-600 pr-3 mb-2">${escapeHtml(SCALE_GROUP_LABELS[group] || group)}</h4>
+            <div class="grid sm:grid-cols-2 gap-3">
+              ${(snap.scaleDiagnosis || []).filter(d => (d.group || 'other') === group).map(d => `
+                <div class="rounded-xl border border-slate-200 bg-white p-4">
+                  <div class="flex items-start justify-between gap-3">
+                    <p class="text-sm font-extrabold text-slate-900">${escapeHtml(d.ar || d.key)}</p>
+                    <span class="shrink-0 rounded-lg bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-800" dir="ltr">${escapeHtml(d.rangeLabel || '')}</span>
+                  </div>
+                  <p class="text-[11px] leading-relaxed text-slate-500 mt-1">${escapeHtml(d.overviewAr || '')}</p>
+                  <p class="text-xs font-bold text-slate-700 mt-3" dir="ltr">خام ${escapeHtml(String(d.raw ?? '—'))}${d.tScore !== undefined && d.tScore !== null ? ` • T ${escapeHtml(String(d.tScore))}` : ''}</p>
+                  <p class="text-xs leading-relaxed text-slate-700 mt-2">${escapeHtml(d.diagnosisAr || '')}</p>
+                </div>`).join('')}
+            </div>
+          </div>`).join('')}
       </div>` : ''}
 
     <div class="grid sm:grid-cols-2 gap-4 mb-6 avoid-break">
